@@ -1,0 +1,336 @@
+<!--
+Copyright (c) 2015 Chung Le. All rights reserved.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="sc-impl-behavior.html">
+<!--
+`<sc-history>` implements history management.
+The API defines: 
+  popStateHandler: handles popState events; reloading the states stored in the history object
+  pushStateHandler: updates states including urls and history objects
+
+<sc-history> has no declarative part.
+
+Usage: <sc-manager> registers transitionCompleteEventHandler with all transitions 
+at the start of the composition. 
+When a <sc-transition> is done with processing a transition, 
+it fires the event transitionCompletedEvent which calls transitionCompleteEventHandler.
+transitionCompleteEventHandler in turn calls pushStateHandler.
+    
+-->
+<dom-module id="sc-history">
+
+  <script>
+    Polymer({
+
+      is: 'sc-history',
+
+      properties: {
+      },
+      behaviors: [ImplBehavior],
+      ready: function() {
+  	    //console.log('sc-History: ready function called');
+      },
+      attached: function() {
+  	    //console.log('sc-History: attached function called');
+      },
+       
+      /**
+       * popStateHandler: handles popState events.
+       *
+       * reconstructs the states listed in the history obj
+       * when the user clicks on the back or forward button which fires a popState event
+       * 
+       * @param {historySM} the main State Manager.
+       * @param {e} the popState event object.
+       * 
+       */
+      popStateHandler: function(historySM, e) {
+        console.log('popStateHandler: event = ', e);
+        var historyObj = e.state;
+        if (historyObj == null) {
+          console.log('popStateHandler: historyObj is null');
+          historySM.path = location.pathname;
+          console.log('ending popStateHandler: historySM.path = ', historySM.path);
+          return;
+        }
+        /*
+         * location.pathname: the current path. 
+         *  For example: /composition/flickrInputState/flickrListState/flickrDetailState/TheBambooGrove
+         *  the above path contains:
+         *    base path: /composition
+         *    states: flickrInputState, flickrListState, and flickrDetailState
+         *    state title: TheBambooGrove
+         * historyObj: stores the information needed to reload the states
+         *    path: the history path which is the same as location.pathname
+         *    states: input params of the states
+         * historySM: the State Manager responsible for handling history. The same as main State Manager
+         *    historySM.path: the path to be unloaded before reloading the current path.
+         *
+         */
+        console.log('popStateHandler: location.pathname = ', location.pathname);
+        console.log('popStateHandler: history path = ', historyObj.path);
+        console.log('popStateHandler: stateParams = ', historyObj.states);
+        
+        console.log('popStateHandler: _unwireTransitions in the history path');
+        this._unwireTransitions(historySM, historyObj.path);
+        console.log('popStateHandler: unregisterOutputListeners from states in the history path');
+        this._registerOutputListeners(historySM, historyObj.path, true);
+        console.log('popStateHandler: _unloadStates in the current path');
+        this._unloadStates(historySM, historySM.path);
+        console.log('popStateHandler: _executeStates in the history path');
+        this._executeStates(historySM, historyObj.path, historyObj.states);
+        console.log('popStateHandler: _wireTransitions in the history path');
+        this._wireTransitions(historySM, historyObj.path);
+        console.log('popStateHandler: registerOutputListeners in the history path');
+        this._registerOutputListeners(historySM, historyObj.path, false);
+        historySM.path = location.pathname;
+        console.log('ending popStateHandler: historySM.path = ', historySM.path);
+      },
+      _unloadStates: function(historySM, currentPath) {
+        console.log('_unloadStates: currentPath = ', currentPath);
+        var states = this._getStatesFromPath(historySM, currentPath);
+        //take every state on the current page down in reverse order
+        for (var i = states.length-1; i >= 0; i--) {
+          //console.log('popStateHandler: removing views from state  i = ', states[i]);
+          var state = document.querySelector('#' + states[i]);
+          var transition = document.querySelector('#' + state.stateTransition);
+          if (transition)
+            state.resetViews(transition.containers, transition.findMatchingView.bind(transition));
+        } 
+      },
+      _executeStates: function(historySM, historyPath, stateParams) {
+        console.log('_executeStates: historyPath = ', historyPath);
+        var states = this._getStatesFromPath(historySM, historyPath);
+        for (var i = 0; i < states.length; i++) {
+          //console.log('popStateHandler: setting params and wire views for state  i = ', states[i]);
+          var state = document.querySelector('#' + states[i]);
+          var transition = document.querySelector('#' + state.stateTransition);
+          if (transition) {
+            transition.wireTransition();
+            state.resetViews(transition.containers, transition.findMatchingView.bind(transition));
+            var stateParam = stateParams[i][states[i]];
+            transition._executeState(stateParam);
+          }
+        }        
+      },
+      _wireTransitions: function(historySM, historyPath) {
+        console.log('_wireTransitions: historyPath = ', historyPath);
+        var states = this._getStatesFromPath(historySM, historyPath);
+        for (var i = 0; i < states.length; i++) {
+          var state = document.querySelector('#' + states[i]);
+          var transition = document.querySelector('#' + state.stateTransition);
+          //console.log('popStateHandler: wiring transition ', transition);
+          if (transition)
+            transition.wireTransition();
+        }
+      },
+      /*
+       * unwire transitions to the states
+       */
+      _unwireTransitions: function(historySM, historyPath) {
+        console.log('_unwireTransitions: historyPath = ', historyPath);
+        var states = this._getStatesFromPath(historySM, historyPath);
+        //console.log('popStateHandler: this.path = ', this.path);
+        for (var i = 0; i < states.length; i++) {
+          var state = document.querySelector('#' + states[i]);
+          var transition = document.querySelector('#' + state.stateTransition);
+          //console.log('popStateHandler: unwire transition ', transition);
+          if (transition)
+            transition.unwireTransition();
+        }       
+      },
+      /*
+       * also need to (un)register the events on the outputs of the states
+       */
+      _registerOutputListeners: function(historySM, historyPath, unregister) {
+        console.log('(un)registerOutputListeners: historyPath = ', historyPath);
+        var states = this._getStatesFromPath(historySM, historyPath);
+        //console.log('popStateHandler: this.path = ', this.path);
+        for (var i = 0; i < states.length; i++) {
+          var state = document.querySelector('#' + states[i]);
+          state.registerOutputListeners(unregister);
+        }       
+      },
+      /*
+       * path has this format: /base/state1/state2/param
+       * _getStatesFromPath removes param, and /base,
+       * then return an array that contains only the states
+       */
+      _getStatesFromPath: function(historySM, path) {
+        var pathWithNoParam = this.removeLastSegment(path);
+        var statePath = pathWithNoParam.replace(historySM.getBasePath(), '');
+        return statePath.split(/\//).slice(1);
+      },
+      
+      /**
+       * Handles pushState events.
+       *
+       * This method uses pushState/replaceState to update the url. 
+       * It also creates a historyObj to store the states and their input params.
+       * historyObj is used later by popStateHandler to reload states.
+       * 
+       * @param {historySM} the main State Manager.
+       * 
+       */      
+      pushStateHandler: function(historySM) {
+        console.log('starting pushStateHandler: location.pathname = ', location.pathname);
+        console.log('starting pushStateHandler: currentState = ', historySM.currentState, '; prevState = ', historySM.prevState);
+        /**
+         * location.pathname: the path of the current url.
+         *  e.g.: /composition/index.html
+         * currentState: is the state just transitioned to.
+         *  e.g.: flickrInputState 
+         * new path: this method uses pushState or replaceState to form a new path.
+         *  e.g.: /composition/flickrInputState/EnterCityName
+         * base path: is the root of the path.
+         *  e.g. /composition is the base of /composition/flickrInputState/EnterCityName
+         */
+         
+        var base = historySM.getBasePath();
+        console.log('starting pushStateHandler: base path = ', base);
+        var path = '';
+        console.log('pushStateHandler: historySM.initialState = ', historySM.initialState,
+          ', historySM.currentState = ', historySM.currentState);
+        if (historySM.initialState.trim() === historySM.currentState.trim()) {
+          //absolute path for the initial state, e.g. /composition/flickrInputState
+          path = base + '/' + historySM.currentState;
+        }
+        else  
+          path = historySM.currentState;//relative path for states other than the initial one, e.g. listState
+        
+        //get the param  
+        var param = this._getStateParam(historySM);
+        if (param) 
+          path = path + '/' + param;
+        //e.g. listState/Kyoto
+        console.log('pushStateHandler: new path = ', path);
+        
+        this._handleState(historySM, path);
+        historySM.path = location.pathname;
+        console.log('ending pushStateHandler: historySM.path = ', historySM.path);
+      },
+      _getStateParam: function(historySM) {
+        var currentState = document.querySelector('#' + historySM.currentState);
+        console.log('pushStateHandler, currentState.id = ', currentState.id);
+        var param = currentState.getPropValue(currentState.params[0]);//the first param only
+        var title = currentState.getPropValue('paramTitle');
+        console.log('pushStateHandler, paramTitle = ', title);
+        //if paramTitle is defined, param is an object, and paramTitle is the title
+        if (title)
+          param = title;//param.title
+        param = this._removeSeparator(param);
+        return param;
+      },
+      _removeSeparator: function(param) {
+        param = param.replace(/\//g, ""); 
+        param = param.replace(/ /g, "")
+        return param; 
+      },
+      _handleState: function(historySM, shortPath) {
+        var fullPath = '';
+        var partialPath = this._getPartialPath(historySM);
+        /*
+         * fullPath describes all states involved in a page
+         * e.g. /CityInfo/inputState/listState/cardState/maiko
+         * fullPath is used to reload the states to render the page when either the backward
+         * or forward button is pushed.
+         *
+         * shortPath is the path used by the history object to differentiate the new state.
+         *  relative shortPart is either
+         *    state/param, this will be added to the new url using pushState, or
+         *    ../state/param, this will replace the last state using replaceState
+         *  absolute short path begins with a '/', and is used to represent the intial state
+         *    e.g. /CityInfoComposition/flickrInputState/EnterCityName
+         *
+         * partialPath is location.pathName with the param at the end removed.
+         *  if the transition yields the same view container, then the last state is also
+         *  removed, and replaceState is used to update the history. Otherwise, 
+         *  pushState is used to create a new state.
+         */
+        if (shortPath.charAt(0) == '/') {//absolute path
+          fullPath = shortPath;
+          console.log('pushStateHandler: pushState');
+          history.pushState(this._createHistoryObject(historySM, fullPath), null, shortPath);
+          return;
+        }
+        
+        //relative paths only
+        fullPath = partialPath + '/' + shortPath;
+        if (this._sameViewContainer(historySM)) {//use replaceState for transitions to the same state
+          shortPath = '../' + shortPath;
+          console.log('pushStateHandler: replaceState');
+          history.replaceState(this._createHistoryObject(historySM, fullPath), null, shortPath);
+        }
+        else {//use pushState for others
+          console.log('pushStateHandler: pushState');
+          history.pushState(this._createHistoryObject(historySM, fullPath), null, shortPath);
+        }
+      },
+      _getPartialPath: function(historySM) {
+        var partialPath = this.removeLastSegment(location.pathname);
+        //if (this.currentState === this.prevState) { //remove duplicate state on the path
+        if(this._sameViewContainer(historySM)) {
+          partialPath = this.removeLastSegment(partialPath);
+        }
+        return partialPath;
+      },
+      _sameViewContainer: function(historySM) {
+        if (historySM.prevState === '')
+          return false;
+        //var currentStateObj = Polymer.dom(historySM).querySelector('#' + historySM.currentState);
+        var currentStateObj = document.querySelector('#' + historySM.currentState);
+        var currentTransitionObj = document.querySelector('#' + currentStateObj.stateTransition);
+        var prevStateObj = document.querySelector('#' + historySM.prevState);
+        var prevTransitionObj = document.querySelector('#' + prevStateObj.stateTransition);
+        var currentContainer = currentTransitionObj.containers[0];
+        var prevContainer = prevTransitionObj.containers[0];
+        var prevContainerName;
+        var currentContainerName;
+        for(var propName in prevContainer) {//only one prop exists
+          if(prevContainer.hasOwnProperty(propName)) {
+            prevContainerName = prevContainer[propName];
+          }
+        }
+        for(var propName in currentContainer) {//only one prop exists
+          if(currentContainer.hasOwnProperty(propName)) {
+            currentContainerName = currentContainer[propName];
+          }
+        }
+        //console.log('currentContainerName = ', currentContainerName, '; prevContainerName = ', prevContainerName);
+        if (currentContainerName === prevContainerName)
+          return true;
+        else
+          return false;
+      },
+      _createHistoryObject: function(historySM, fullPath) {
+        console.log('createHistoryObject: fullPath = ', fullPath);
+        if (historySM.isBasePath(fullPath))
+          return null;
+        var path = {path: this.removeLastSegment(fullPath)};
+        var historyObject = {};
+        historyObject['path'] = fullPath;
+        historyObject['states'] = this._getStateParams(historySM, fullPath);
+        return historyObject;
+      },
+      _getStateParams: function(historySM, path) {
+        console.log('sc-history: getStateParams, path = ', path);
+        var stateParams = [];
+        var states = this._getStatesFromPath(historySM, path);
+        for (var i = 0; i < states.length; i++) {
+          //console.log('sc-history: getStateParams. state = ', states[i]);
+          //var state = Polymer.dom(historySM).querySelector('#' + states[i]);
+          var state = document.querySelector('#' + states[i]);
+          //console.log('getStateParam: state = ', state);
+          var params = this.getParamValues(state);//defined in ImplBehavior
+          var stateParam = {};
+          stateParam[states[i]] = params;
+          stateParams[i] = stateParam;
+        }
+        return stateParams;
+      },
+    });
+  </script>
+</dom-module>
+

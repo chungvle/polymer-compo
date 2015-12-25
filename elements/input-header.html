@@ -1,0 +1,75 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../bower_components/paper-toolbar/paper-toolbar.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+
+<dom-module id="input-header">
+
+  <template>
+
+    <style>
+      .dropdown-content {
+        padding: 10px;
+      }
+    </style>
+
+    <paper-toolbar id="inputView">
+      <span>[[term]]</span>
+
+      <paper-menu-button id="searchMenu" horizontal-align="left" vertical-align="top"
+        on-paper-dropdown-open="handleDropdownOpen">
+        <paper-icon-button icon="search" class="dropdown-trigger"></paper-icon-button>
+        <paper-input id="input" value="[[term]]" label="[[label]]" 
+          on-keydown="checkForEnter" 
+          autofocus
+          class="dropdown-content"></paper-input>
+      </paper-menu-button>
+    </paper-toolbar>
+    
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'input-header',
+
+      properties: {
+
+        title: {
+          type: String,
+          value: "Search Input"
+        },
+        term: {
+          type: String,
+          notify: true,
+          observer: '_termChanged'
+        },
+        label: {
+          type: String,
+          value: "Enter Search Term"
+        }
+      },
+      checkForEnter: function (e) {
+        // check if 'enter' was pressed
+        if (e.keyCode === 13) {
+            this.term = this.$.input.value;
+            this.$.searchMenu.close();
+        }
+      },
+      handleDropdownOpen: function () {
+        console.log('DropDown Opened, input = ', this.$.input);
+        this.$.input.value='';
+        this.term = '';//this will not trigger _termChanged if the old value is also ''
+      },
+      _termChanged: function() {
+        console.log('termChanged, term = ', this.term);
+        if (this.term == null)
+          this.term = '';
+      }
+    });
+  </script>
+
+</dom-module>
+

@@ -1,0 +1,253 @@
+<!--
+Copyright (c) 2015 Chung Le. All rights reserved.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="sc-impl-behavior.html">
+<link rel="import" href="sc-transition.html">
+<link rel="import" href="sc-state.html">
+<link rel="import" href="sc-event.html">
+<link rel="import" href="sc-history.html">
+<!--
+`<sc-manager>` manages all events, transitions, and states defined in a composition.
+
+Example: 
+    <sc-manager>
+      <sc-event id="flickrStartEvent"
+        target='{"targetType": "application", "eventType": "applicationStart"}'
+        event-values='[{"name": "label", "value": "Enter City Name"},
+                 {"name": "title", "value": "City Search"}]'></sc-event>
+        
+      <sc-transition id="flickrInputTransition" 
+        events='["flickrStartEvent"]' transition-to="flickrInputState" 
+        containers='[{"inputView": "inputContainer"}]'></sc-transition> 
+  
+      <sc-state id="flickrInputState" is-initial="true"
+        component="input-header"
+        params='["label", "title", "term"]' views='["inputView"]' outputs='["term"]'></sc-state>
+              
+    </sc-manager>
+    
+At attached, sc-manager does the following setups:
+  Sets the Initial State.
+  Sets the State Manager Object for events, transitions, and states.
+  Sets the State Transition for states.
+  Sets the State Object for transition-to states.
+  Sets stateOutputListeners for events.
+  Wires events.
+  Wires transitions.
+  
+sc-manager also registers a method to handle history when a transition is complete.
+
+The API includes:
+    startApplication: sets up the composition to start.
+    setCurrentState: sets the param the current state. Called by sc-transition.
+    setMainSM: sets the param the main State Manager. Called by sc-relay.
+    popStateHandler: handles popState events. 
+    handleHistory: creates a history object and update url for the current state.
+    getBasePath: returns the basePath of this composition. Called by sc-transition.
+    isBasePath: returns true if the path is the basePath. Called by sc-transition.
+    
+-->
+<dom-module id="sc-manager">
+
+  <template>
+    <content></content>
+  </template>
+  <script>
+    Polymer({
+
+      is: 'sc-manager',
+      /*
+       * can't assume that we wilL have an id for the state manager.
+       * there's only one state manager in a composition, 
+       * so when we need to find the state manager, just use querySelector('sc-manager')
+       */
+      properties: {
+        initialState: {
+          type: String,
+          value: ''
+        },
+        currentState: {
+          type: String,
+          value: ''
+        },
+        prevState: {
+          type: String,
+          value: ''
+        },
+        path: {// e.g. /PolymerComposition/CityInfo/flickrListState/flickrCardState/kyomizu
+          type: String,
+          value: ''
+        },
+        base: {// e.g. /PolyerComposition/CityInfo
+          type: String,
+          value: ''
+        },
+        mainSM: {//the one specified in startApplication; handles history
+          type: Object
+        },
+        historyHandler: {
+          type: Object
+        }
+      },
+      behaviors: [ImplBehavior],
+      ready: function() {
+  	    //console.log('sc-Manager: ready function called');
+  	    this.historyHandler = document.createElement('sc-history');
+      },
+      attached: function() {//An instance of the element was inserted into the DOM
+  	    console.log('sc-Manager: attached function called');
+  	    this._setInitialState(this);
+  	    this._setStateManagerObj(this);//light DOM
+        this._setStateTransition(this);
+        this._setTransitionToState(this);
+        this._setStateOutputListeners(this);
+        this._wireAllEvents(this);
+        this._wireAllTransitions(this);
+      },
+      startApplication: function(mainSM) {
+        this.mainSM = mainSM;
+        this._startApplication();
+      },
+      _startApplication: function() {
+        if (!this.mainSM)
+          this.mainSM = this;
+        this.mainSM.fire('applicationStart');
+      },
+      _reStartApplication: function() {
+        if (!this.mainSM)
+          this.mainSM = this;
+        if (this.mainSM.currentState !== this.mainSM.initialState)
+          this._startApplication();
+      },
+      _setInitialState: function(node) {
+        var states = Polymer.dom(node).querySelectorAll('sc-state');//search the light Dom for states
+        for (var i = 0; i < states.length; i++) {
+          var state = states[i];
+          if (state.isInitial) {
+            this.initialState = state.id;
+            //console.log('_setInitialState, initial state = ', state.id);
+            break;
+          }
+        }        
+      },
+      _setStateManagerObj: function(node) {
+        this._setStateManagerObjFor(Polymer.dom(node).querySelectorAll('sc-state'));
+        this._setStateManagerObjFor(Polymer.dom(node).querySelectorAll('sc-transition'));
+        this._setStateManagerObjFor(Polymer.dom(node).querySelectorAll('sc-event'));
+      },
+      _setStateManagerObjFor: function(smArray) {
+        for (var i = 0; i < smArray.length; i++) {
+            var smObject = smArray[i];
+            smObject.set('stateManagerObj', this);
+        }
+      },
+      _wireAllEvents: function(node) {
+        var events = Polymer.dom(node).querySelectorAll('sc-event');
+        for (var i = 0; i < events.length; i++) {
+            var event = events[i];
+            event.setDefaultEventValues();
+            event.registerEvent(false);
+        }
+      },
+      _wireAllTransitions: function(node) {
+        var transitions = Polymer.dom(node).querySelectorAll('sc-transition');
+        for (var i = 0; i < transitions.length; i++) {
+            var transition = transitions[i];
+            transition.wireTransition();
+            this._listenToTransitionComplete(transition);
+        }
+      },
+      _listenToTransitionComplete: function(transition) {
+        transition.addEventListener('transitionCompletedEvent', 
+          this.transitionCompleteEventHandler.bind(this), false);
+      },
+      transitionCompleteEventHandler: function(e) {
+        console.log('sc-manager: transitionCompleteEventHandler, transition.id = ', e.detail.id);
+        this.handleHistory();
+      },
+      /*
+       * There is at most one transition for each state.
+       */
+      _setStateTransition: function(node) {
+        var transitions = Polymer.dom(node).querySelectorAll('sc-transition');
+        for (var i = 0; i < transitions.length; i++) {
+            var transition = transitions[i];
+            var state = Polymer.dom(node).querySelector('#' + transition.transitionTo);
+            state.set('stateTransition', transition.id);
+        }
+      },
+      _setTransitionToState: function(node) {
+        var transitions = Polymer.dom(node).querySelectorAll('sc-transition');
+        for (var i = 0; i < transitions.length; i++) {
+            var transition = transitions[i];
+            var state = Polymer.dom(this).querySelector('#' + transition.transitionTo);
+            if (state)
+              transition.set('state', state);
+            else
+              console.log('_setTransitionToState: state is NOT FOUND, transition = ', transition);
+        }        
+      },
+      _setStateOutputListeners: function(node) {
+        var events = Polymer.dom(node).querySelectorAll('sc-event');
+        for (var i = 0; i < events.length; i++) {
+            var eventTarget = events[i].target;
+            if (eventTarget.targetType === 'state') {
+              var state = Polymer.dom(this).querySelector('#' + eventTarget.id);
+              state.outputListeners.push(events[i]);
+            }
+        }
+      },
+      setMainSM: function(stateManager) {
+        this.mainSM = stateManager;
+      },
+      setCurrentState: function(state) {
+        console.log('sc-manager: setCurrentState to ', state);
+        if (state == '')
+          return;
+        //do not set currentState for this.currentState
+        if (this.mainSM)
+          this._setCurrentState(this.mainSM, state);
+        //console.log('currentState = ', this.currentState, '; prevState = ', this.prevState);
+        //console.log('mainSM currentState = ', this.mainSM.currentState, '; prevState = ', this.mainSM.prevState);
+      },
+      _setCurrentState: function(stateManager, state) {
+        stateManager.prevState = stateManager.currentState;
+        stateManager.currentState = state;
+      },
+      popStateHandler: function(e) {
+        this.historyHandler.popStateHandler(this.mainSM, e);
+      },
+      handleHistory: function() {
+        if (!(window.history && history.pushState))
+          return;
+        console.log('handleHistory: stateManager = ', this, ' mainSM = ', this.mainSM);
+        this.historyHandler.pushStateHandler(this.mainSM);
+      },
+      /*
+       * A path has this format /base/index.html
+       * base is the path with the last segment removed, e.g./base
+       * For example, /CityInfo/index.html or /PolymerComposition/CityInfo/Index.html
+       * the base path is /CityInfo or /PolymerComposition/CityInfo
+       */
+      getBasePath: function() {
+        if (this.base)
+          return this.base;
+        else
+          if (this.currentState === this.initialState) {
+            this.base = this.removeLastSegment(location.pathname);
+            return this.base;
+          }
+      },
+      isBasePath: function(path) {
+        var path = this.removeLastSegment(path);
+        if (path === this.base)
+          return true;
+        else 
+          return false;
+      }
+    });
+  </script>
+</dom-module>
+

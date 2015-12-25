@@ -1,0 +1,58 @@
+<!--
+Copyright (c) 2015 Chung Le. All rights reserved.
+-->
+
+<script>
+    window.CompositionBehavior = window.CompositionBehavior || {};
+    /**
+     * Common composition behavior
+     * 
+     * @polymerBehavior CompositionBehavior
+     */
+    CompositionBehavior = {
+
+      properties: {
+      },
+      created: function() {
+        //console.log('CompositionBehavior created', this);
+      },
+      /**
+       * startApplication: starts a composition.
+       *
+       * Delegates startApplication to the sc-composition found in the localDOM.
+       */
+      startApplication: function() {
+        console.log('CompositionBehavior: starting application, this = ', this);
+        Polymer.dom(this.root).querySelector('sc-composition').startApplication();
+      },
+      /**
+       * popStateHandler: handles popState events.
+       *
+       * Delegates popStateHandler to the sc-composition found in the localDOM.
+       * @param {e} the popState event.
+       * 
+       */
+      popStateHandler: function(e) {
+        Polymer.dom(this.root).querySelector('sc-composition').popStateHandler(e);
+      },
+      /**
+       * stateManagerObj: finds the main StateManager.
+       *
+       * First searches and return the sc-manager in the localDOM if there's one.
+       * Otherwise, looks up the sc-composition in the localDOM, and call findMainStateManager
+       * 
+       * @return {object} The main state manager.
+       */
+      stateManagerObj: function() {
+        var stateManager = Polymer.dom(this.root).querySelector('sc-manager');
+        if (stateManager)
+          return Polymer.dom(this.root).querySelector('sc-manager');
+        var composition = Polymer.dom(this.root).querySelector('sc-composition');
+        if (composition)
+          return composition.findMainStateManager();
+        else
+          return null;
+      }
+
+    };
+</script>

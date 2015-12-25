@@ -1,0 +1,104 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-list/iron-list.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/iron-icons/image-icons.html">
+<link rel="import" href="../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+
+
+<link rel="import" href="flickr-service.html">
+
+<dom-module id="flickr-list">
+  <template>
+    <style>
+    :host {
+      display: block;
+    }
+    flickr-card {
+      margin-bottom: 30px;
+    }
+    </style>
+    
+    <flickr-service id="service" metadata="{{result}}">
+    </flickr-service>
+
+    <div id="listView">
+      <span class="title" flex>MyFlickr</span>
+      <paper-menu-button>
+        <paper-icon-button icon="menu" class="dropdown-trigger"></paper-icon-button>        
+        <paper-menu id="menu" selected="{{_selectedIndex}}" class="dropdown-content">
+          <template is="dom-repeat" items="{{result}}">
+            <paper-item>
+              <paper-item-body>
+                <div>
+                  <iron-icon icon="image:camera"></iron-icon>
+                  <span>{{item.title}}</span>
+                </div>
+              </paper-item-body>
+            </paper-item>
+          </template>
+        </paper-menu>
+      </paper-menu-button>
+    </div>
+
+  </template>
+
+  <script>
+  Polymer({
+
+      is: 'flickr-list',
+
+      properties: {
+        input: {
+          type: String,
+          observer: '_inputChanged'
+        },
+        result: {
+          type: Array,
+          notify: true,
+          observer: '_resultAvailable'
+        },
+        selectedItem: {
+          type: Object,
+          notify: true,
+          observer: '_selectedItemChanged'
+        },
+        _selectedIndex: {
+          type: Number,
+          notify: true,
+          observer: '_selectedIndexChanged'
+        },
+      },
+      created: function() {
+  	    //console.log('Flickr-list: created function called');
+      },
+      ready: function() {
+  	    //console.log('Flickr-list: ready function called');
+      },
+      _resultAvailable: function() {
+        console.log('Flickr-list: _resultAvailable');
+        this._selectedIndex = null;
+        console.log('_selectedIndex = ', this._selectedIndex);
+        //this.selectedItem = this.result[0];
+        //this.$.menu.selected = 0;
+      },
+      _selectedItemChanged: function(item) {
+        console.log('Flick-list: selected item changed, new item = ', item);
+      },
+      _selectedIndexChanged: function(idx) {
+        console.log('Flick-list: index changed, new index = ', idx);
+        this.selectedItem = this.result[idx];
+      },
+      _inputChanged: function(newVal, oldVal) {
+      	console.log('inputChanged(): oldVal = ' + oldVal 
+      		+ '; newVal = ' + newVal);
+      	console.log('input = ' + this.input);	
+      	this.$.service.city = this.input;
+      }
+  });
+
+  </script>
+
+</dom-module>

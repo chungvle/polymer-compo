@@ -1,0 +1,233 @@
+<!--
+Copyright (c) 2015 Chung Le. All rights reserved.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="sc-impl-behavior.html">
+<!--
+`<sc-event>` listens to changes of a target, and fires an event with the changed values.
+In essence, <sc-event> plays the role of a mediator passing changed values from one element to others
+interested parties.
+
+Two types of targets are supported: application and state.
+
+The application target is used to start a composition.
+Example of an application target:
+        <sc-event id="flickrStartEvent"
+          target='{"targetType": "application", "eventType": "applicationStart"}'
+          event-values='[{"name": "label", "value": "Enter City Name"},
+                   {"name": "title", "value": "City Search"}]'></sc-event>
+It listens to the applicationStart event, then fires the event 'flickrStartEvent' with the 
+specified event values. 
+
+The second target type, state, is more common. It's used to listen to changes in properties of a state.
+Example of a state target:
+        <sc-event id="flickrCitySelectedEvent"
+          target='{"targetType": "state", "id": "flickrInputState"}'></sc-event>
+It listens to changes in the output properties defined in flickrInputState. 
+Event-values are implicit, i.e. by default, they are:
+        event-values='[{"name": "term", "type": "stateProperty"}]'
+
+The API includes:
+    registerEvent: registers the event with the target. Called by sc-manager.
+    setDefaultEventValues: sets the default event-values. Called by sc-manager.
+    triggerEvent: fires the change event externally. This supports the relay mechanism in composition.
+    fireEvent: fires the change event. Called by the target.
+    
+-->
+<dom-module id="sc-event">
+
+  <template>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'sc-event',
+
+      properties: {
+        id: {
+          type: String
+        },
+        target: {//{"targetType": "state", "name": "listState", "eventType": "propertyChange"}
+          type: Object
+        },
+        /*
+         * if nothing is specified,  setDefaultEventValues creates the default eventValues from State's outputs
+         */
+        eventValues: {//[{"name": "selectedPix", "type": "stateProperty"}]
+          type: Array,
+          value: function() { return []; }
+        },
+        stateManagerObj: {
+          type: Object
+        },
+        fireEventHandler: {
+          type: Object
+        },
+      },
+      behaviors: [ImplBehavior],
+      ready: function() {
+  	    //console.log('sc-Event: ready function called');
+  	    this.fireEventHandler = this.fireEvent.bind(this);
+      },
+      /*
+       * registerEvent is public, called by sc-manager
+       */
+      registerEvent: function(unregister) {
+        //console.log('sc-Event: register event.id = ', this.id);
+        switch(this.target.targetType) {
+          case "state":
+            this._registerStateOutputEvents(unregister);
+            break;
+          case "application":
+            console.log('sc-event, registerEvent, target = application');
+            if (unregister)
+              this.stateManagerObj.removeEventListener(this.target.eventType, this.fireEventHandler);
+            else
+              this.stateManagerObj.addEventListener(this.target.eventType, this.fireEventHandler);
+            break;
+        }
+      },
+      _registerStateOutputEvents: function(unregister) {
+        var state = Polymer.dom(this.stateManagerObj).querySelector('#' + this.target.id);
+        for (var i = 0; i < this.eventValues.length; i++) {
+          if (unregister) {
+            console.log('unregister event, event.id = ', this.id);
+            state.registerEventListener(this._getPolymerEventName(this.eventValues[i].name), 
+                                      this.fireEventHandler, unregister);
+          }
+          else {
+            console.log('register event, event.id = ', this.id);
+            state.registerEventListener(this._getPolymerEventName(this.eventValues[i].name), 
+                                      this.fireEventHandler, unregister);
+          }
+        }
+      },
+      /*
+       * setDefaultEventValues is public, called by sc-manager
+       */
+      setDefaultEventValues: function() {
+        if (this.eventValues.length > 0 || this.target.targetType === 'application')
+          return;
+        console.log('setDefaultEventValues for event = ', this);
+        var state = Polymer.dom(this.stateManagerObj).querySelector('#' + this.target.id);
+        var eventValues = [];
+        for (var i = 0; i < state.outputs.length; i++) {
+          var outputName = state.outputs[i];
+          var eventValue = {};
+          eventValue.name = outputName;
+          eventValue.type = 'stateProperty';
+          eventValues[i] = eventValue;
+        }
+        this.eventValues = eventValues;
+        console.log('sc-event: _setDefaultEventValues, eventValues = ', this.eventValues);
+      },
+      /*
+       * triggerEvent is public, it allows firing an event from externally
+       */
+      triggerEvent: function(eventType, params) {
+        if (params)
+          this.fire(eventType, params);
+        else
+          this.fire(eventType);
+      },
+      /*
+       * fireEvent is public, called by the event target
+       */
+      fireEvent: function(e) {
+        //console.log('sc-event, fireEvent, sc-event = ', this, '; event = ', e);
+        switch (this.target.eventType) {
+          case "stateReset":
+            console.log('sc-event, fireEvent, eventType = propertyReset');
+            var param = this.eventValues[0];
+            if (param.value === this._getPropValue(param.name)) {
+              this.triggerEvent(this.id);
+              this.stateManagerObj._reStartApplication();
+            }
+            break;
+          //case "propertyChange"://this is the default
+          //  break;
+          case "applicationStart":
+            //console.log('sc-event, fireEvent, eventType = applicationStart');
+            this._firePropertyChangeEvent(e.type);
+            break;
+          default://"propertyChange"
+            console.log('sc-event, fireEvent, eventType = propertyChange');
+            this._firePropertyChangeEvent(e.type);
+            break;
+        }
+      },
+      _firePropertyChangeEvent: function(targetEventType) {
+        console.log('----------- sc-event: firePropertyChangeEvent -----------');
+        var transParams = [];
+        var transParam = {};
+        var eventReady = true;
+        /* some of the values might not be available
+         * the net effect is that the transition event will be fired 
+         * only when all non-optional param values are available.
+         * every time a property changes, it goes back to the state and recollects all eventValues.
+         *
+         * Alternatively, it could store the available eventValues locally. 
+         * It could trigger a transition event when the last one is available.
+         * This is a TODO if there's the need for it.
+         */
+        for (var i = 0; i < this.eventValues.length; i++) {
+          var propName = this._getPolymerPropName(targetEventType);
+          var param = this.eventValues[i];
+          if (param.type === 'stateProperty') {//propertyChange
+            var propValue = this._getEncodedPropValue(propName);
+            console.log('sc-event: firePropertyChangeEvent, propName = ', propName);
+            console.log('sc-event: firePropertyChangeEvent, propValue = ', propValue);
+            /* no need to provide the propName with the value
+             * when Transition gets it, it assumes the order of values (transParams) in Event
+             * matches that of the input params in the transition to state
+             * If propNames were to be encoded with the value, Transition would need
+             * to explicitly defines the mapping from transParam to input Params
+             * which makes it more complicated at this point.
+             */
+            //transParam[propName] = propValue;
+             
+            transParam = propValue;
+            if (param.optional === "true")
+              eventReady = eventReady && true;
+            else {
+              if (propValue == null || propValue === '')
+                eventReady = eventReady && false;
+              else
+                eventReady = eventReady && true;
+            }
+           
+          }
+          else {//applicationStart
+            //transParam[propName] = param.value;
+            transParam = param.value;
+            //console.log('sc-event: applicationStart Event, paramValue = ', transParam);
+          }
+          transParams[i] = transParam;
+        }
+        //event id is the event type
+        if (eventReady)
+          this.triggerEvent(this.id, transParams);
+      },
+      _getEncodedPropValue: function(propName){
+        var state = Polymer.dom(this.stateManagerObj).querySelector('#' + this.target.id);
+        return this.encodePropValue(state, propName);//in sc-impl-behavior
+      },
+      _getPropValue: function(propName) {
+        var state = Polymer.dom(this.stateManagerObj).querySelector('#' + this.target.id);
+        return state.getPropValue(propName);
+      },
+      _getPolymerEventName: function(propName) {
+        return propName.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase() + '-changed';
+      },
+      _getPolymerPropName: function(eventType) {
+        eventType = eventType.replace('-changed', '');
+        eventType = eventType.replace(/\-([a-z])/g, function(v) { return v.toUpperCase(); });
+        return eventType.replace(/\-/g, '');
+      },
+    });
+  </script>
+</dom-module>
+

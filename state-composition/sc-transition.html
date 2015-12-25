@@ -1,0 +1,151 @@
+<!--
+Copyright (c) 2015 Chung Le. All rights reserved.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<!--
+`<sc-transition>` defines the transition to a state when a specific event happens.
+Also defines containers to house the views supported by the state.
+
+Example:
+    <sc-transition id="flickrInputTransition" 
+          events='["flickrStartEvent"]' transition-to="flickrInputState" 
+          containers='[{"inputView": "inputContainer"}]'></sc-transition>
+
+In common usecases, a transition listens to one event.
+However, there are exceptions where a transitions may be defined for multiple events. 
+One such example involves stateReset events.
+
+A transition has only one state to process.
+
+The API includes:
+  wireTransition: wires up an event listener with the corresponding event(s). 
+    Called by sc-manager and sc-history.
+  unwireTransition: unwires event listeners. Called by sc-history.
+  execute: processes a transition in respond to a registered event.
+  
+
+--> 
+<dom-module id="sc-transition">
+
+  <template>
+    <style>
+    </style>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'sc-transition',
+
+      properties: {
+        id: {
+          type: String
+        },
+        /*
+         * Only one transitionTo to keep thing simple.
+         */
+        transitionTo: {
+          type: String,
+          notify: true,
+        },
+        state: {
+          type: Object,
+          value: null,
+        },
+        containers: {
+          type: Array,
+          value: function() { return []; }
+        },
+        /*
+         * when there's more than one events, the default semantic is disjunctive
+         * meaning a transition would be triggered by any individual events
+         * conjunctive semantic is feasible but not supported currently.
+         */
+        events: {
+          type: Array
+        },
+        stateManagerObj: {
+          type: Object
+        },
+        transitionEventHandler: {
+          type: Object
+        },
+      },
+      ready: function() {
+  	    //console.log('sc-Transition: ready function called');
+  	    this.transitionEventHandler = this.execute.bind(this);
+      },
+      /*
+       * wireTransition is only called once when sc-manager executes setTransitions at the start
+       */
+      wireTransition: function() {
+        console.log('wireTransition: transition.id = ', this.id);
+        for (var i = 0; i < this.events.length; i++) {
+          var event = this.events[i];
+          console.log('sc-Transition: transition event ', event);
+          var el = Polymer.dom(this.stateManagerObj).querySelector('#' + event);
+          el.addEventListener(event, this.transitionEventHandler, false);
+        }
+      },
+      unwireTransition: function() {
+        console.log('sc-Transition: unwireTransition = ', this.id);
+        for (var i = 0; i < this.events.length; i++) {
+          var event = this.events[i];
+          var el = Polymer.dom(this.stateManagerObj).querySelector('#' + event);
+          el.removeEventListener(event, this.transitionEventHandler, false);
+        }
+      },
+      /*
+       * When a transition is caused by clicking on the backward and forward buttons, 
+       *  we must avoid updating the history. This is implemented by the function _executeState below
+       * Other user interactions must be tracked in the history, implemented by the function execute.
+       */
+      execute: function(e) {
+        console.log('sc-transition, execute, event = ', e);
+        var smEvent = Polymer.dom(this.stateManagerObj).querySelector('#' + e.type);
+        if (smEvent.target.eventType === 'stateReset') {
+          console.log('sc-transition, execute, resetViews');
+          this.state.resetViews(this.containers, this.findMatchingView.bind(this));
+        }
+        else {
+          this._executeState(e.detail);
+          this.fire('transitionCompletedEvent', this);
+        }
+      },
+      _executeState: function(params) {
+        this._wireState();
+        this._loadState(params);
+      },
+      _wireState: function() {
+        console.log('wireState:');
+        /*
+         * Ideally, setViews should be called only once, e.g. inside wireTransition.
+         * However, views might not be available if we call too early.
+         */
+        this.state.setViews(this.containers, this.findMatchingView.bind(this));
+      },
+      /*
+       * e.g. containers='[{"cardView": "cardContainer"}]'
+       * each container object has a key that is the view name, and the value is the container name
+       */
+      findMatchingView: function(container) {
+        for (var i = 0; i < this.state.views.length; i++) {
+          var view = this.state.views[i];
+          //console.log('view = ', view, '; container = ', container[view]);
+          if (container[view])
+            return view;
+        }
+        return null;
+      },
+      _loadState: function(params) {
+        console.log('sc-transition: _loadState, params = ', params);
+        //var stateManager = document.getElementById(this.state.stateManager);
+        var stateManager = this.state.stateManagerObj;
+        stateManager.setCurrentState(this.state.id);
+        this.state.setParams(params);
+      }
+    });
+  </script>
+</dom-module>
+

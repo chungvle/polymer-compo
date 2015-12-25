@@ -1,0 +1,182 @@
+<!--
+Copyright (c) 2015 Chung Le. All rights reserved.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="sc-relay.html">
+<link rel='import' href="sc-manager.html">
+<link rel="import" href="sc-composition-behavior.html"> 
+<!--
+`<sc-composition>` encapsulates the composition of an application.
+It defines one or more compositions, and provides an API to start the
+app, and manages history.
+
+In typical use, sc-composition defines a sc-manager which in turn 
+defines sc-states, sc-events, and sc-transitions.
+
+    <sc-composition>
+      <sc-manager>
+        <sc-state></sc-state>
+        <sc-event></sc-event>
+        <sc-transition></sc-transition>
+      </sc-manager>
+    </sc-composition>
+
+In more sophisticated usecases, a composition might be composed of multiple compositions.
+One of the composition is defined to be the main composition.
+A sc-relay element might be used to connect one event to another.
+    <sc-composition>
+      <xyz-composition class="composition main"></xyz-composition>
+      <abc-composition class="composition"></abc-composition>
+      <sc-relay from-event='xyzEvent'
+        to-event='abcEvent'></sc-relay>
+    </sc-composition>
+
+The API includes:
+    startApplication: starts the application
+    popStateHandler: handles history
+
+@demo demo/index.html
+-->
+<dom-module id="sc-composition">
+
+  <template>
+    <content></content>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'sc-composition',
+
+      properties: {
+        id: {
+          type: String,
+        },
+        isMain: {
+          type: Boolean
+        },
+        mainSMObj: {
+          type: Object
+        }
+      },
+      ready: function() {
+        //console.log('Composition: ready function called');
+      },
+      attached: function() {
+        //console.log('Composition: attached function called');
+      },
+      startApplication: function() {
+        //this._setMainStateManager();
+        this.mainSMObj = this.findMainStateManager();
+        //this._addPatternSuffixes();
+        this._wireEventRelays();
+        this.mainSMObj.startApplication(this.mainSMObj);
+      },
+      popStateHandler: function(e) {
+        this.mainSMObj.popStateHandler(e);
+      },
+      _setMainStateManager: function() {
+        var compositions = this._findCompositions();
+        console.log('Composition: compositions = ', compositions);
+        if (compositions.length === 0) {
+          this.mainSMObj = Polymer.dom(this).querySelector('sc-manager');
+          return;
+        }
+        var mainComposition = this._findMainComposition();
+        console.log('Composition: mainComposition = ', mainComposition);
+        this.mainSMObj = mainComposition.stateManagerObj();
+      },
+      /*
+       * find the state manager in this composition if there's one
+       * if not find the main composition, and get the state manager of that
+       * by this calling this findMainStateManager recursively
+       */
+      findMainStateManager: function() {
+        var compositions = this._findCompositions();
+        console.log('Composition: compositions = ', compositions);
+        if (compositions.length === 0) 
+            return Polymer.dom(this).querySelector('sc-manager')
+        var mainComposition = this._findMainComposition();
+        if (mainComposition)
+          return mainComposition.stateManagerObj();
+        else
+          return null;
+      },
+      /*
+       *  Polymer currently doesn't support inheritance
+       *  We work around that by introducing "composition" and "main" classes
+       */
+      _findCompositions: function() {
+        //return Polymer.dom(this).querySelectorAll('sc-composition');
+        return Polymer.dom(this).querySelectorAll('.composition');
+      },
+      /*
+       * return the main composition if exists
+       * otherwise, return the first composition
+       */
+      _findMainComposition: function() {
+        var mainComposition = Polymer.dom(this).querySelector('.composition.main');
+        if (mainComposition)
+          return mainComposition;
+        else
+          return Polymer.dom(this).querySelectorAll('.composition')[0];
+      },
+      _wireEventRelays: function() {
+        var relays = Polymer.dom(this).querySelectorAll('sc-relay');
+        for (var i = 0; i < relays.length; i++) {
+          var relay = relays[i];
+          relay.stateManagerObj = this.mainSMObj;
+        }
+      },
+      _addPatternSuffixes: function() {
+        var relays = Polymer.dom(this).querySelectorAll('sc-relay');
+        for (var i = 0; i < relays.length; i++) {
+          var relay = relays[i];
+          console.log('_addPatternSuffixes: relayFromEvent = ', relay.fromEvent);
+          relay.fromEvent = this._newPatternName(relay.fromEvent, relay.fromComposition);
+          console.log('_addPatternSuffixes: new relayFromEvent = ', relay.fromEvent);
+          
+          console.log('_addPatternSuffixes: relayToEvent = ', relay.toEvent);
+          relay.toEvent = this._newPatternName(relay.toEvent, relay.toComposition);
+          console.log('_addPatternSuffixes: new relayToEvent = ', relay.toEvent);
+        }
+      },
+      _newPatternName: function(event, composition) {
+        var pattern = this._findPatternObj(composition)
+          if (pattern)
+            return pattern.newName(event);
+          else
+            return event;
+      },
+      /*
+       *  patternObj is a composition-pattern hidden under a few levels of sc-compositions
+       *
+       *  sc-composition 
+       *    parent-composition id='parent' //parentComposition
+       *    relay from-event from-composition='parent'
+       *  parent-composition localDOM
+       *    sc-composition //localComposition
+       *      pattern-composition pattern-id='' class="composition main" //patternComposition
+       *  pattern-composition localDOM
+       *    sc-composition
+       *      composition-pattern id='{{patternId}}' //patternObj
+       */
+      _findPatternObj: function (composition) {
+        if (!composition)
+          return null;
+        parentComposition = Polymer.dom(this).querySelector('#' + composition);
+        if (parentComposition) {
+          console.log('_findPatternObj: parentComposition = ', parentComposition);
+          var localComposition = Polymer.dom(parentComposition.root).querySelector('sc-composition');
+          console.log('_findPatternObj: localComposition = ', localComposition);
+          var patternComposition = localComposition._findMainComposition();
+          if (patternComposition && patternComposition.patternId)
+            return Polymer.dom(patternComposition.root).querySelector('composition-pattern');
+        }
+        return null;
+      }
+    });
+  </script>
+</dom-module>
+

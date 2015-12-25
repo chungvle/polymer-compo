@@ -1,0 +1,194 @@
+<!--
+Copyright (c) 2015 Chung Le. All rights reserved.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="sc-impl-behavior.html">
+<!--
+`<sc-state>` defines the interface to a component. More specifically, it defines.
+    Input Params: the input properties of the component.
+    Views: the view supported by the component.
+    Outputs: the output properties of the component.
+
+Example:
+    <sc-state id="flickrInputState" is-initial="true"
+      component="input-header"
+      params='["label", "title", "term"]' views='["inputView"]' outputs='["term"]'></sc-state>
+
+The API includes:
+  setParams: sets the input params for the component.
+  setViews: assigns views to the corresponding containers. Called by sc-transition.
+  resetViews: clears out views for a reset Event. Called by sc-transition and sc-history.
+  getPropValue: returns the value of the property.
+  registerEventListener: registers events. Called by sc-event.
+  registerOutputListeners: (un)registers output listeners. Called by sc-history.
+
+--> 
+<dom-module id="sc-state">
+
+  <template>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'sc-state',
+
+      properties: {
+        id: {
+          type: String
+        },
+        component: {
+          type: String,
+          observer: '_createComponent'
+        },
+        _componentObj: {
+          type: Object,
+          value: null
+        },
+        stateManagerObj: {
+          type: Object
+        },
+        isInitial: {
+          type:Boolean,
+          value: false
+        },
+        params: {
+          type: Array,
+          value: function() { return []; }
+        },
+        views: {
+          type: Array,
+          value: function() { return []; }
+        },
+        outputs: {
+          type: Array,
+          value: function() { return []; }
+        },
+        outputListeners: {//events with the target = this state
+          type: Array,
+          value: function() { return []; }
+        },
+      /*
+       * There is at most one transition for each state.
+       * This is necessary because  
+       * the views supported by a state can only be inserted into one container.
+       * If more than one transition is needed for a component,
+       * a different state can be created for each transition
+       */
+        stateTransition: {//used internally only
+          type: String
+        }
+      },
+      behaviors: [ImplBehavior],
+      ready: function() {
+  	    //console.log('sc-State: ready function called');
+      },
+      _createComponent: function() {
+        console.log('sc-State: createComponent function called, component name = ', this.component);
+        this._componentObj = document.createElement(this.component);
+      },
+      /*
+       * the order in paramValues and params is assumed to be the same
+       */
+      setParams: function(paramValues) {
+        console.log('sc-State: setParams, stateID = ', this.id, '; component = ', this._componentObj);
+        if (!this._componentObj) {
+          console.log('sc-State: setParams, componentObj is null');
+          return;
+        }
+        for (var i = 0; i < this.params.length; i++) {
+          var paramKey = this.params[i];
+          var paramValue = this.decodePropValue(paramValues[i]);
+          
+          console.log('sc-state: setParams, paramKey = ', paramKey);
+          console.log('sc-state: setParams, paramValue = ', paramValue);
+          if (typeof paramValue === "undefined" || paramValue == null) {
+            paramValue = '';
+          }
+          this._componentObj.set(paramKey, paramValue);
+        }
+      },
+      _findParamValue: function(key, paramValues) {
+        for (var i = 0; i < paramValues.length; i++) {
+          var value = paramValues[i];
+          //console.log('key = ', key, '; value = ', value[key]);
+          if (value[key])
+            return value[key];
+        }
+        return null;
+      },
+      setViews: function(containers, findMatchingView) {
+        console.log('sc-State: setViews, state.id = ', this.id);
+        //handle multiple views in the specified order
+        for (var i = 0; i < containers.length; i++) {
+          var container = containers[i];
+          var view = findMatchingView(container);
+          this._assignView(container[view], view);
+        }
+      },
+      _assignView: function(containerName, viewName) {
+        var viewContainer = document.getElementById(containerName);
+        var view = Polymer.dom(this._componentObj.root).querySelector('#' + viewName);
+        //console.log('containerName = ', containerName, '; viewName = ', viewName);
+        //console.log('viewContainer = ', viewContainer, '; view = ', view);
+        var firstChild = viewContainer.firstChild;
+        if (!firstChild)
+          viewContainer.appendChild(view);
+        else {//when two or more types of views are placed at the same container
+          /* 
+           * if view.id == firstChild.id, do not replace the view
+           * usecase: the view might be expecting input from the user,
+           * replacing the view would remove the input view, and the user would need to restart
+           */
+          if (view.id !== firstChild.id) {
+            console.log('assignView: remvoving view ', firstChild.id);
+            viewContainer.removeChild(firstChild);//remove the previous one if different type
+            console.log('assignView: adding view ', view.id);
+            viewContainer.appendChild(view);
+          }
+        }
+      },
+      resetViews: function(containers, findMatchingView) {
+        console.log('sc-State: resetViews, stateID = ', this.id);
+        for (var i = 0; i < containers.length; i++) {
+          var container = containers[i];
+          var view = findMatchingView(container);
+          var viewContainer = document.getElementById(container[view]);
+          //console.log('sc-State: resetViews, viewContainer = ', viewContainer);
+          while (viewContainer.firstChild) {
+            console.log('sc-state: resetViews, removing view ', viewContainer.firstChild.id);
+            viewContainer.removeChild(viewContainer.firstChild);
+          }
+        }        
+      },
+      /*
+       * public methods
+       */
+      getPropValue: function(propName) {
+        return this._componentObj.get(propName);
+      },
+      registerEventListener: function(eventType, eventHandler, unregister) {
+        if (!this._componentObj) {
+          console.log('registerEventListener: cant register. componentObj is null');
+          return;
+        }
+        if (unregister) {
+          this._componentObj.removeEventListener(eventType, eventHandler);
+        }
+        else {
+          this._componentObj.addEventListener(eventType, eventHandler);
+        }
+      },
+      registerOutputListeners: function(unregister) {
+        console.log('(un)registerOutputListeners, state = ', this.id);
+        for (var i = 0; i < this.outputListeners.length; i++) {
+          var listener = this.outputListeners[i];
+          listener.registerEvent(unregister);
+        }
+      }
+    });
+  </script>
+</dom-module>
+

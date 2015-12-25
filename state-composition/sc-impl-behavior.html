@@ -1,0 +1,80 @@
+<!--
+Copyright (c) 2015 Chung Le. All rights reserved.
+-->
+
+<script>
+    window.ImplBehavior = window.ImplBehavior || {};
+    /**
+     * Common implementation behavior
+     * 
+     * @polymerBehavior ImplBehavior
+     */
+    ImplBehavior = {
+
+      properties: {
+      },
+      
+      listeners: {
+      },
+      
+      created: function() {
+        //console.log('ImplBehavior created');
+      },
+      
+      /**
+       * encodePropValue: wraps the value of the propName in stateObj
+       * in some form of encoding. For example, it may create a key value
+       * where the key if the propName, and the value is the value.
+       *
+       * @param {stateObj} the state object.
+       * @param {propName} the name of the property to be encoded.
+       * @return {object} The encoded value of the property.
+       * 
+       */
+      encodePropValue: function(stateObj, propName) {
+        return stateObj.getPropValue(propName);
+      },
+      
+      /**
+       * decodePropValue: unwraps the value object, and returns the proper value.
+       *
+       * @param {value} an object whose encoding has been done by encodePropValue.
+       * @return {object} The value of the property.
+       * 
+       */
+      decodePropValue: function(value) {
+        return value;
+      },
+      
+      /**
+       * getParamValues: gets param values from a component.
+       *
+       * @param {stateObj} the state object of the component.
+       * @return {object} an array of params. Each param is an object with a key a a value
+       * 
+       */
+      getParamValues: function(stateObj) {
+        var params = [];
+        for (var i = 0; i < stateObj.params.length; i++) {
+          var key = stateObj.params[i];
+          var value = this.encodePropValue(stateObj, key);
+          params[i] = value;
+        }
+        return params;
+      },
+
+      /**
+       * removeLastSegment: remove the last segment of a path.
+       *
+       * @param {path} 
+       * @return {string} the path with the last segment removed
+       * 
+       */
+      removeLastSegment: function(path) {
+        var segments = path.split(/\//);
+        segments.pop();
+        return segments.join('/');
+      },
+
+    };
+</script>

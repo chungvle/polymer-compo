@@ -1,0 +1,87 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-image/iron-image.html">
+<!--<link rel="import" href="../bower_components/paper-shadow/paper-shadow.html">-->
+<dom-module id="flickr-card">
+
+  <template>
+
+    <style>
+      : host {
+        display: block;
+        position: relative;
+        background-color: white;
+        padding: 20px;
+        font-size: 1.2rem;
+        font-weight: 300;
+      }
+      .item {
+        box-sizing: border-box;
+        padding: 8px 16px;
+      }
+      .photo {
+        background-size: cover;
+        min-height: 250px;
+        min-width: 250px;
+        box-sizing: border-box;
+        background-color: lightgray;
+      }
+      .title {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 12px 8px 8px 8px;
+        color: white;
+        background: rgba(0, 0, 0, 0.3);
+      }
+    </style>
+    <div class="item" id="detailView">
+      <iron-image class="photo" sizing="cover" src="{{computeItemURL(item)}}" preload relative>
+        <div class="title">{{item.title}}</div>
+      </iron-image>
+    </div>
+    <div class="item" id="view2">
+      <iron-image class="photo" sizing="cover" src="{{computeItemURL(item2)}}" preload relative>
+        <div class="title">{{item2.title}}</div>
+      </iron-image>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'flickr-card',
+
+      properties: {
+
+        item: {
+          type: Object,
+          notify: true,
+          observer: '_setTitle'
+        },
+        item2: {
+          type: Object,
+          notify: true
+        },
+        paramTitle: {
+          type: String
+        }
+      },
+      ready: function() {
+        //console.log('Flickr-card: ready function called');
+      },
+      computeItemURL: function(item) {
+        if (item != null)
+          return 'https://farm' + item.farm + '.staticflickr.com/' + item.server + '/' + item.id + '_' + item.secret + '_m.jpg';
+      },
+      computeURL: function(farm, server, itemid, secret) {
+        if (item != null)
+          return 'https://farm' + farm + '.staticflickr.com/' + server + '/' + itemid + '_' + secret + '_m.jpg';
+      },
+      _setTitle: function() {
+        this.paramTitle = this.item.title;
+      }
+    });
+  </script>
+
+</dom-module>

@@ -1,0 +1,75 @@
+<!--
+Copyright (c) 2015 Chung Le. All rights reserved.
+-->
+
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<!--
+`<sc-relay>` relays an event to another. This simple mechanism is used 
+to connect an event of one composition to another in a different composition.
+
+Example:
+    <sc-relay from-event='flickrCitySelectedEvent'
+    to-event='youtubeCitySelectedEvent'></sc-relay>
+    
+-->  
+<dom-module id="sc-relay">
+
+  <template>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'sc-relay',
+      /*
+       * <sc-relay id='relayId' from-event='event1' to-event='event2'></sc-relay>
+       */
+      properties: {
+        id: {
+          type: String
+        },
+        fromEvent: {
+          type: String
+        },
+        fromComposition: {//pattern id
+          type: String
+        },
+        toEvent: {
+          type: String
+        },
+        toComposition: {//pattern id
+          type: String
+        },
+        stateManagerObj: {
+          type: Object,
+          observer: '_stateManagerChanged'
+        }
+      },
+      ready: function() {
+  	    //console.log('Event-Relay: ready function called');
+      },
+      _stateManagerChanged: function() {
+        this.relay();
+      },
+      relay: function() {
+        var froms = document.querySelectorAll('#' + this.fromEvent);
+        for (var i = 0; i < froms.length; i++) {
+          console.log('Event-Relay: from = ', froms[i]);
+        }
+        var from = document.querySelector('#' + this.fromEvent);
+        console.log('Event-Relay: from = ', from);
+        var to = document.querySelector('#' + this.toEvent);
+        console.log('Event-Relay: to = ', to);
+        to.stateManagerObj.setMainSM(this.stateManagerObj);
+        console.log('Event-Relay: mainSM = ', to.stateManagerObj.mainSM);
+        
+        from.addEventListener(from.id, function(e){
+            console.log('----------- Event-Relay: triggering event.id = ', to.id, ' -----------');
+            to.triggerEvent(to.id, e.detail);
+          }, false);
+      },
+    });
+  </script>
+</dom-module>
+

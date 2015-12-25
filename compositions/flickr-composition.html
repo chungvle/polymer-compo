@@ -1,0 +1,67 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../state-composition/sc-composition.html"> 
+
+<link rel="import" href="../elements/input-header.html">
+<link rel="import" href="../elements/flickr-list.html">
+<link rel="import" href="../elements/flickr-card.html">
+
+<dom-module id="flickr-composition">
+  <template>
+    <sc-composition>
+      <sc-manager>
+        <sc-event id="flickrStartEvent"
+          target='{"targetType": "application", "eventType": "applicationStart"}'
+          event-values='[{"name": "label", "value": "Enter City Name"},
+                   {"name": "title", "value": "City Search"}]'></sc-event>
+        <sc-event id="flickrCitySelectedEvent"
+          target='{"targetType": "state", "id": "flickrInputState"}'></sc-event>
+        <sc-event id="flickrItemSelectedEvent"
+          target='{"targetType": "state", "id": "flickrListState"}'></sc-event>
+        <!--reset events -->    
+        <sc-event id="flickrResetEvent"
+          target='{"targetType": "state", "id": "flickrInputState", "eventType": "stateReset"}'
+          event-values='[{"name": "term", "value": ""}]'></sc-event> 
+          
+        <sc-transition id="flickrInputTransition" 
+          events='["flickrStartEvent"]' transition-to="flickrInputState" 
+          containers='[{"inputView": "inputContainer"}]'></sc-transition> 
+        <sc-transition id="flickrListTransition"
+          events='["flickrCitySelectedEvent", "flickrResetEvent"]' transition-to="flickrListState" 
+          containers='[{"listView": "flickrListContainer"}]'></sc-transition>
+        <sc-transition id="flickrDetailTransition"
+          events='["flickrItemSelectedEvent", "flickrResetEvent"]' transition-to="flickrDetailState" 
+          containers='[{"detailView": "detailContainer"}]'></sc-transition>
+
+        <sc-state id="flickrInputState" is-initial="true"
+          component="input-header"
+          params='["label", "title", "term"]' views='["inputView"]' outputs='["term"]'></sc-state>
+        <sc-state id="flickrListState"
+          component="flickr-list"
+          params='["input"]' views='["listView"]' outputs='["selectedItem"]'></sc-state>
+        <sc-state id="flickrDetailState"
+          component="flickr-card"
+          params='["item"]' views='["detailView"]'></sc-state>
+                
+      </sc-manager>
+    </sc-composition>
+  </template>
+  <script>
+    Polymer({
+
+      is: 'flickr-composition',
+
+      properties: {
+        id: {
+          type: String
+        },
+      },
+      behaviors: [CompositionBehavior],
+      ready: function() {
+        //console.log('Flickr-Composition: ready function called');
+      },
+      attached: function() {
+        //console.log('Flickr-Composition: attached function called');
+      },
+    });
+  </script>
+</dom-module>

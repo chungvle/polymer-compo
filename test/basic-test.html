@@ -1,0 +1,58 @@
+<!doctype html>
+<!--
+Copyright (c) 2015 Chung Le. All rights reserved.
+-->
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+
+    <script src="../../webcomponentsjs/webcomponents.js"></script>
+    <script src="../../web-component-tester/browser.js"></script>
+    <link rel="import" href="../bower_components/polymer/polymer.html">
+
+    <!-- Step 1: import the element to test -->
+    <link rel="import" href="../elements/city-search-manager.html">
+  </head>
+  <body>
+
+    <!-- You can use the document as a place to set up your fixtures. -->
+    <city-search-manager id="city-search-app"></city-search-manager>
+
+    <script>
+      var manager = document.querySelector('city-search-manager');
+
+      suite('<city-search-manager>', function() {
+        
+        test('starts the app', function() {
+          var cityinfoComposition = document.querySelector('#cityinfoComposition');
+          cityinfoComposition.startApplication();
+          var flickrStateManager = document.querySelector('sc-manager');
+          assert.equal(flickrStateManager.currentState, 'flickrInputState');
+        });
+        
+        test('verifies the id of of flickrInputState', function() {
+          var flickrInputState = document.querySelector('#flickrInputState');
+          assert.equal(flickrInputState.id, 'flickrInputState');
+        });    
+        
+        test('listens to the flickrListTransition complete event', function() {
+          var flickrListTransition = document.querySelector('#flickrListTransition');
+          flickrListTransition.addEventListener('transitionCompletedEvent', function(event) {
+            assert.equal(event.detail.id, 'flickrListTransition');
+          });
+        });
+        
+        test('sets the outputs property of flickrInputState', function() {
+          var flickrInputState = document.querySelector('#flickrInputState');
+          assert.equal(flickrInputState.id, 'flickrInputState');
+          flickrInputState.setParams(["title", "City Search", "tokyo"]);
+          assert.equal(flickrInputState.getPropValue('term'), 'tokyo');
+        });     
+
+      });
+    </script>
+
+  </body>
+</html>
