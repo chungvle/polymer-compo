@@ -1,0 +1,72 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/iron-ajax/iron-ajax.html">
+<!--
+`<flickr-service>` uses flickr RESTful API to retrieve photo metadata.
+To use this element, you will need your own flickr API, 
+and enter it to the variable flickrKey below. 
+-->
+
+<dom-module id="flickr-service">
+
+  <template>
+    <style>
+      :host {
+        display: none;
+      }
+    </style>
+    
+    <iron-ajax id="ajax"
+      on-response="dataLoaded"
+      handleAs="json">
+    </iron-ajax>
+    
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'flickr-service',
+
+      properties: {
+
+        metadata: {
+          type: Array,
+          notify: true
+        },
+        city: {
+          type: String,
+          observer: '_execute'
+        }
+      },
+      created: function() {
+  	    //console.log('Flickr-service: created function called');
+      },
+      ready: function() {
+  	    //console.log('Flickr-service: ready function called');
+      },
+      _execute: function() {
+        if (this.city === '' || this.city == null )
+          return;
+        var flickrKey = '';//enter you flickr API key here
+    		console.log('Executing Ajax request; city = ' + this.city);
+    		this.$.ajax.url ='https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=' 
+    		  + flickrKey + '&nojsoncallback=1&format=json&per_page=5&tags=' 
+    		  + this.city;
+    		this.$.ajax.generateRequest();
+      },
+      dataLoaded: function() {
+      	 console.log('url = ' + this.$.ajax.url);
+      	 console.log('lastResponese = ' + this.$.ajax.lastResponse.photos.photo.slice(0));
+      	 this.metadata = this.$.ajax.lastResponse.photos.photo.slice(0);
+      },
+      processError: function(xhr) {
+      	var response = xhr.status + ': ' + xhr.responseText;
+      	console.log('Flickr-service: response = ' + response);
+      	this.fire('core-error', {response: response, xhr: xhr});
+      },
+
+    });
+  </script>
+
+</dom-module>
+
