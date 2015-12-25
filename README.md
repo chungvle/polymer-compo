@@ -8,15 +8,17 @@ PolymerCompo is implemented using Polymer 1.0. See the section on 'What is Polym
 
 ## Demo
 
-Our demo is called CityInfo. It uses web services like Flickr to show information, e.g. photos, about a city.
+Our demo is called CityInfo. It uses Flickr to show information, e.g. photos, 
+about a city. It's been verified to work in Chrome.
 
 To run the demo, follow the steps below:
 1. install polyserve
    npm install -g polyserve
 2. down load and unzip the framework into a directory
 3. cd to the directory in #2, then run bower install
-4. next, run polyserve
-5. finally, open a browser and type in the following url:
+4. edit flickr-service.html in the folder elements to add your flickr API key to the variable flickrKey
+5. next, run polyserve
+6. finally, open a browser and type in the following url:
    http://localhost:8080/components/PolymerCompo/demo/
 
 ## What is PolymerCompo?
