@@ -9,7 +9,7 @@ PolymerCompo is implemented using Polymer 1.0. See the section on 'What is Polym
 ## Demo
 
 Our demo is called CityInfo. It uses Flickr to show information, e.g. photos, 
-about a city. It's been verified to work in Chrome.
+about a city. It's been verified to work in Chrome and Firefox.
 
 To run the demo, follow the steps below:
    1. install polyserve
