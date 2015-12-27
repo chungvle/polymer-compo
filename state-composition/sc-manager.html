@@ -96,8 +96,12 @@ The API includes:
   	    //console.log('sc-Manager: ready function called');
   	    this.historyHandler = document.createElement('sc-history');
       },
-      attached: function() {//An instance of the element was inserted into the DOM
+      attached: function() {
   	    console.log('sc-Manager: attached function called');
+      },
+      _setUp: function() {
+        if (this.initialState)
+          return;//only do this once.
   	    this._setInitialState(this);
   	    this._setStateManagerObj(this);//light DOM
         this._setStateTransition(this);
@@ -108,6 +112,7 @@ The API includes:
       },
       startApplication: function(mainSM) {
         this.mainSM = mainSM;
+        this._setUp();
         this._startApplication();
       },
       _startApplication: function() {
