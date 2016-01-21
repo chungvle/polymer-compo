@@ -26,9 +26,9 @@ To run the demos, follow the steps below:
     your youtube API key to the variable youtubeAPIKey
   5. next, run polyserve
   6. finally, open a browser and type in the following url:
-     for the flickr demo: http://localhost:8080/components/PolymerCompo/demo/flickr.html
-     for the youtube demo: http://localhost:8080/components/PolymerCompo/demo/youtube.html
-     for the cityinfo demo: http://localhost:8080/components/PolymerCompo/demo/index.html
+     - for the flickr demo: http://localhost:8080/components/PolymerCompo/demo/flickr.html
+     - for the youtube demo: http://localhost:8080/components/PolymerCompo/demo/youtube.html
+      -for the cityinfo demo: http://localhost:8080/components/PolymerCompo/demo/index.html
 
 ## What is PolymerCompo?
 
@@ -96,10 +96,10 @@ The States: The above components are encapsulated by three corresponding states 
 params, views and outputs defines the name of the input param, view and output properties, respectively.
 
 The Events: There are three events in our demo:
-  <sc-event id="flickrStartEvent"
+  sc-event id="flickrStartEvent"
     target='{"targetType": "application", "eventType": "applicationStart"}'
     event-values='[{"name": "label", "value": "Enter City Name"},
-             {"name": "title", "value": "City Search"}]'></sc-event>
+             {"name": "title", "value": "City Search"}]'
   This event sends the signal to start the application.
   
   <sc-event id="flickrCitySelectedEvent"
