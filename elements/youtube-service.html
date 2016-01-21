@@ -1,0 +1,65 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="youtube-service">
+
+  <template>
+    <style>
+      :host {
+        display: none;
+      }
+    </style>
+    
+    
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'youtube-service',
+
+      properties: {
+
+        data: {
+          type: Array,
+          notify: true,
+          observer: '_dataAvailable'
+        },
+        keyword: {
+          type: String,
+          observer: 'youTubeSearch'
+        }
+      },
+      ready: function() {
+  	    //console.log('Youtube-service: ready function called');
+      },
+      _dataAvailable: function() {
+        console.log('Youtube-service: data available');
+      },
+      youTubeSearch: function() {
+        if (this.keyword === '' || this.keyword == null )
+          return;
+        var youtubeAPIKey = '';//your youtube API Key goes here
+        console.log('Youtube-service: keywordSearch called');
+        gapi.client.setApiKey(youtubeAPIKey);
+        gapi.client.load('youtube', 'v3', function() {
+                this.makeRequest(this.keyword);
+        }.bind(this));
+      },
+      makeRequest: function (keyword) {
+        console.log('Youtube-service: makeRequest to YoutubeAPI');
+        var q = keyword;
+        var request = gapi.client.youtube.search.list({
+                   q: q,
+                part: 'snippet'                        
+        });
+        request.execute(this.resultHandler.bind(this));
+      },
+      resultHandler: function(response) {
+        this.data =  response.result.items.slice(0);
+        //console.log('Youtube-service: YoutubeAPI response, result = ', this.data);
+      }
+    });
+  </script>
+
+</dom-module>
+<script src="https://apis.google.com/js/client.js"></script>
