@@ -28,7 +28,7 @@ To run the demos, follow the steps below:
   6. finally, open a browser and type in the following url:
      - for the flickr demo: http://localhost:8080/components/PolymerCompo/demo/flickr.html
      - for the youtube demo: http://localhost:8080/components/PolymerCompo/demo/youtube.html
-      -for the cityinfo demo: http://localhost:8080/components/PolymerCompo/demo/index.html
+     - for the cityinfo demo: http://localhost:8080/components/PolymerCompo/demo/index.html
 
 ## What is PolymerCompo?
 
@@ -63,11 +63,11 @@ The application shell: is defined in the element city-search-manager.html. It in
 
 The composition: the states, events, and transitions are defined as part of 
 a state manager inside a composition in the element flickr-composition.html:
-  <sc-composition>
+  `<sc-composition>
     <sc-manager>
       <!-- states, events, transitions: see 'The Details' below --> 
     </sc-manager>
-  </sc-composition>
+  </sc-composition>`
 
 Starting the composition: The application shell also contain a function to start the composition:
   attached: function() {
