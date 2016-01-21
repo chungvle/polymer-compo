@@ -1,0 +1,34 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<link rel="import" href="flickr-composition.html">
+<link rel="import" href="youtube-composition.html">
+<link rel="import" href="../state-composition/sc-composition.html">
+
+<dom-module id="cityinfo-composition">    
+  <template>
+    <sc-composition>
+      <flickr-composition class="composition main"></flickr-composition>
+      <youtube-composition class="composition"></youtube-composition>
+      <sc-relay from-event='flickrCitySelectedEvent'
+        to-event='youtubeCitySelectedEvent'></sc-relay>
+      <sc-relay from-event='flickrResetEvent'
+        to-event='youtubeResetEvent'></sc-relay>
+    </sc-composition>
+  </template>
+  <script>
+    Polymer({
+
+      is: 'cityinfo-composition',
+
+      properties: {
+        id: {
+          type: String
+        },
+      },
+      behaviors: [CompositionBehavior],
+      ready: function() {
+        //console.log('cityinfo-composition: ready function called');
+      }
+    });
+  </script>
+</dom-module>
