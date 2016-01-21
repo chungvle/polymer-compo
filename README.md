@@ -6,20 +6,29 @@ In addition, it supports history management using pushState/popState.
 PolymerCompo is implemented using Polymer 1.0. See the section on 'What is PolymerCompo' for more details.
 
 
-## Demo
-
-Our demo is called CityInfo. It uses Flickr to show information, e.g. photos, 
-about a city. It's been verified to work in Chrome and Firefox.
-
-To run the demo, follow the steps below:
-   1. install polyserve
-      npm install -g polyserve
-   2. down load and unzip the framework into a directory
-   3. cd to the directory in #2, then run bower install
-   4. edit flickr-service.html in the folder elements to add your flickr API key to the variable flickrKey
-   5. next, run polyserve
-   6. finally, open a browser and type in the following url:
-      http://localhost:8080/components/PolymerCompo/demo/
+## Demos
+There are three demos in the demo directory:
+  - flickr: searches flickr for pictures that contains a tag, e.g. a city name, entered by the user.
+    This is a composition of four components: flickr-service, flickr-card, flickr-list, and input-header.
+  - youtube: searches youtube for videos that contains a tag, e.g. a city name, entered by the user.
+    This is a composition of four components: youtube-service, youtube-player, youtube-list, and input-header.
+  - cityinfo: uses flickr and youtube to show pictures and vidoes. This is a composition of the above compositions.
+  
+To run the demos, follow the steps below:
+  1. install polyserve
+     npm install -g polyserve
+  2. down load and unzip the framework into a directory
+  3. cd to the directory in #2, then run bower install
+  4. add your API keys:
+    4.1. flickr: edit flickr-service.html in the folder elements to add 
+    your flickr API key to the variable flickrKey
+    4.2. youtube: edit youtube-service.html in the folder elements to add
+    your youtube API key to the variable youtubeAPIKey
+  5. next, run polyserve
+  6. finally, open a browser and type in the following url:
+     for the flickr demo: http://localhost:8080/components/PolymerCompo/demo/flickr.html
+     for the youtube demo: http://localhost:8080/components/PolymerCompo/demo/youtube.html
+     for the cityinfo demo: http://localhost:8080/components/PolymerCompo/demo/index.html
 
 ## What is PolymerCompo?
 
@@ -42,7 +51,7 @@ To compose a new application using PolymerCompo:
      the events that leads to transitions to new states which render new views. These views are placed
      in the corresponding containers defined in step #1.
 
-Our demo, CityInfo, showcases an application presenting Flickr photos for a city. 
+One of our demos, flickr, showcases an application presenting Flickr photos for a city. 
 The application shell and composition are described below.
 
 The application shell: is defined in the element city-search-manager.html. It includes:
