@@ -1,0 +1,92 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-item/paper-item-body.html">
+<link rel="import" href="../bower_components/paper-menu/paper-menu.html">
+<link rel="import" href="../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../bower_components/iron-icons/av-icons.html">
+<link rel="import" href="../bower_components/paper-menu-button/paper-menu-button.html">
+<link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
+  
+<link rel="import" href="youtube-service.html">
+  
+<dom-module id="youtube-list">
+  <template>
+    <style>
+    </style>
+    <youtube-service id="youtubeService" data="{{items}}"></youtube-service>
+    
+    <paper-input id="input" label="Enter a City" autofocus on-change="youTubeService"></paper-input>
+
+    <div id="youtubeList">
+      <span class="title" flex>YouTube</span>
+      <paper-menu-button>
+        <paper-icon-button icon="menu" class="dropdown-trigger"></paper-icon-button>        
+       
+        <paper-menu id="youtubeMenu" selected="{{_selectedIndex}}" class="dropdown-content">
+          <template is="dom-repeat" items="[[items]]">
+            <paper-item>
+              <paper-item-body>
+                <div>
+                  <iron-icon icon="av:videocam"></iron-icon>
+                  <span>{{item.snippet.title}}</span>
+                </div>
+              </paper-item-body>
+            </paper-item>
+          </template>
+        </paper-menu>
+        
+      </paper-menu-button>
+    </div>    
+  </template>
+
+  <script>
+  Polymer({
+
+      is: 'youtube-list',
+
+      properties: {
+        keyword: {
+          type: String,
+          observer: '_inputChanged'
+        },
+        items: {
+          type: Array,
+          notify: true,
+          observer: '_resultAvailable'
+        },
+        selectedItem: {
+          type: Object,
+          notify: true,
+        },
+        _selectedIndex: {
+          type: Number,
+          notify: true,
+          observer: '_selectedIndexChanged'
+        },
+      },
+      attached: function() {
+  	    //console.log('Youtube-list: attached function called');
+      },
+      _resultAvailable: function() {
+        //console.log('Youtube-list: result available');
+        this._selectedIndex = null;
+      },
+      _selectedIndexChanged: function(idx) {
+        //console.log('Youtube-list: index changed, new index = ', idx);
+        this.selectedItem = this.items[idx];
+        console.log('Youtube-list: index changed, new item = ', this.selectedItem);
+      },
+      youTubeService: function(e) {
+        this.$.youtubeService.keyword = this.$.input.value;
+      },
+      _inputChanged: function(newVal, oldVal) {
+      	console.log('inputChanged(): oldVal = ' + oldVal 
+      		+ '; newVal = ' + newVal);
+      	console.log('input = ' + this.keyword);	
+      	this.$.youtubeService.keyword = this.keyword;
+      }
+  });
+
+  </script>
+</dom-module>
+

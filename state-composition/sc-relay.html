@@ -53,16 +53,12 @@ Example:
         this.relay();
       },
       relay: function() {
-        var froms = document.querySelectorAll('#' + this.fromEvent);
-        for (var i = 0; i < froms.length; i++) {
-          console.log('Event-Relay: from = ', froms[i]);
-        }
         var from = document.querySelector('#' + this.fromEvent);
-        console.log('Event-Relay: from = ', from);
+        //console.log('Event-Relay: from = ', from);
         var to = document.querySelector('#' + this.toEvent);
-        console.log('Event-Relay: to = ', to);
+        //console.log('Event-Relay: to = ', to);
         to.stateManagerObj.setMainSM(this.stateManagerObj);
-        console.log('Event-Relay: mainSM = ', to.stateManagerObj.mainSM);
+        //console.log('Event-Relay: mainSM = ', to.stateManagerObj.mainSM);
         
         from.addEventListener(from.id, function(e){
             console.log('----------- Event-Relay: triggering event.id = ', to.id, ' -----------');

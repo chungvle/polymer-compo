@@ -1,0 +1,82 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+
+<dom-module id="youtube-player">
+
+  <template>
+
+    <style>
+    .container {
+      position: relative;
+      width: 100%;
+      height: 0;
+      padding-bottom: 56.25%;
+    }
+    .video {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+    }
+    </style>
+        
+    <div id="youtubeCardView" class="container">
+      <iframe id="player" class="video"
+      frameborder="0" allowfullscreen></iframe>
+    </div>
+
+  </template>
+
+  <script>
+    Polymer({
+
+      is: 'youtube-player',
+
+      properties: {
+
+        item: {
+          type: Object,
+          notify: true,
+          observer: '_setTitle'
+        },
+        paramTitle: {
+          type: String
+        },
+        _YTplayer: Object,
+      },
+      ready: function() {
+        console.log('Youtube-card: ready function called');
+        this._loadIframeAPI();
+      },
+      _setTitle: function() {
+        this._createYTPlayer();
+        console.log('this.item = ', this.item);
+        this.paramTitle = this.item.snippet.title;
+        this.$.player.src = 'http://www.youtube.com/embed/' + this.item.id.videoId + '?enablejsapi=1';
+        console.log('Youtube-card: player.src = ', this.$.player.src);
+      },
+      _createYTPlayer: function(event) {
+        if (this._YPplayer)
+          return;
+        this._YPplayer = new YT.Player('player', {
+            events: {
+              'onReady': this.onPlayerReady,
+            }
+        });
+        console.log('Youtube-card: new YouTube player created');
+      },
+      onPlayerReady: function(event) {
+        event.target.playVideo();
+      },
+      _loadIframeAPI: function() {
+        // loads the IFrame Player API code asynchronously.
+        var tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        var firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        console.log('Youtube-card: YT Iframe API loaded');
+      }
+    });
+  </script>
+
+</dom-module>

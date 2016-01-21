@@ -1,0 +1,66 @@
+<link rel="import" href="../bower_components/polymer/polymer.html">
+<link rel="import" href="../state-composition/sc-composition.html"> 
+
+<link rel="import" href="../elements/input-header.html">
+<link rel="import" href="../elements/youtube-list.html">
+<link rel="import" href="../elements/youtube-card.html">
+<link rel="import" href="../elements/youtube-player.html">
+
+
+<dom-module id="youtube-composition">
+  <template>
+    <sc-composition>
+      <sc-manager >
+      <sc-event id="youtubeStartEvent"
+        target='{"targetType": "application", "eventType": "applicationStart"}'
+        event-values='[{"name": "label", "value": "Enter City Name"},
+                 {"name": "title", "value": "City Search"}]'></sc-event>
+      <sc-event id="youtubeCitySelectedEvent"
+        target='{"targetType": "state", "id": "youtubeInputState"}'></sc-event>
+      <sc-event id="youtubeItemSelectedEvent"
+        target='{"targetType": "state", "id": "youtubeListState"}'></sc-event>
+      <!--reset events -->    
+      <sc-event id="youtubeResetEvent"
+        target='{"targetType": "state", "id": "youtubeInputState", "eventType": "stateReset"}'
+        event-values='[{"name": "term", "value": ""}]'></sc-event> 
+        
+      <sc-transition id="youtubeInputStateTransition"
+        events='["youtubeStartEvent"]' transition-to="youtubeInputState" 
+        containers='[{"inputView": "inputContainer"}]'></sc-transition> 
+      <sc-transition id="youtubeListStateTransition" 
+        events='["youtubeCitySelectedEvent", "youtubeResetEvent"]' transition-to="youtubeListState" 
+        containers='[{"youtubeList": "youtubeListContainer"}]'></sc-transition>
+      <sc-transition id="youtubeCardStateTransition" 
+        events='["youtubeItemSelectedEvent", "youtubeResetEvent"]' transition-to="youtubeCardState" 
+        containers='[{"youtubeCardView": "detailContainer"}]'></sc-transition>
+
+      <sc-state id="youtubeInputState" is-initial="true"
+        component="input-header"
+        params='["label", "title", "term"]' views='["inputView"]' outputs='["term"]'></sc-state>
+      <sc-state id="youtubeListState"
+        component="youtube-list"
+        params='["keyword"]' views='["youtubeList"]' outputs='["selectedItem"]'></sc-state>
+      <sc-state id="youtubeCardState"
+        component="youtube-player"
+        params='["item"]' views='["youtubeCardView"]'></sc-state>
+           
+    </sc-manager> 
+    </sc-composition>
+  </template>
+  <script>
+    Polymer({
+
+      is: 'youtube-composition',
+
+      properties: {
+        id: {
+          type: String
+        }
+      },
+      behaviors: [CompositionBehavior],
+      ready: function() {
+        //console.log('Youtube-composition: ready function called');
+      }
+    });
+  </script>
+</dom-module>
