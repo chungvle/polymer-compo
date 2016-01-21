@@ -63,16 +63,18 @@ The application shell: is defined in the element city-search-manager.html. It in
 
 The composition: the states, events, and transitions are defined as part of 
 a state manager inside a composition in the element flickr-composition.html:
->    `<sc-composition>`
->        `<sc-manager>`
->            `<!-- states, events, transitions: see 'The Details' below --> `
->        `</sc-manager>`
->    `</sc-composition>`
+<!-- language: lang-html -->
+    <sc-composition>
+        <sc-manager>
+            <!-- states, events, transitions: see 'The Details' below -->
+        </sc-manager>
+    </sc-composition>
 
 Starting the composition: The application shell also contain a function to start the composition:
-  attached: function() {
-    this.$.cityinfoComposition.startApplication();
-  }
+<!-- language: lang-js -->
+    attached: function() {
+        this.$.cityinfoComposition.startApplication();
+    }
 
 The Details: The views in our composition are renderedby the following components:
   1. input-header.html: prompts the user to enter a tag to search for photos
@@ -83,59 +85,67 @@ The Details: The views in our composition are renderedby the following component
      flickr-list, and displays the corresponding photo.
 
 The States: The above components are encapsulated by three corresponding states defined as follow:
-  <sc-state id="flickrInputState" is-initial="true"
-    component="input-header"
-    params='["label", "title", "term"]' views='["inputView"]' outputs='["term"]'></sc-state>
-  <sc-state id="flickrListState"
-    component="flickr-list"
-    params='["input"]' views='["listView"]' outputs='["selectedItem"]'></sc-state>
-  <sc-state id="flickrDetailState"
-    component="flickr-card"
-    params='["item"]' views='["detailView"]'></sc-state>
+<!-- language: lang-html -->
+    <sc-state id="flickrInputState" is-initial="true"
+        component="input-header"
+        params='["label", "title", "term"]' views='["inputView"]' outputs='["term"]'></sc-state>
+    <sc-state id="flickrListState"
+        component="flickr-list"
+        params='["input"]' views='["listView"]' outputs='["selectedItem"]'></sc-state>
+    <sc-state id="flickrDetailState"
+        component="flickr-card"
+        params='["item"]' views='["detailView"]'></sc-state>
     
 params, views and outputs defines the name of the input param, view and output properties, respectively.
 
 The Events: There are three events in our demo:
-  sc-event id="flickrStartEvent"
-    target='{"targetType": "application", "eventType": "applicationStart"}'
-    event-values='[{"name": "label", "value": "Enter City Name"},
-             {"name": "title", "value": "City Search"}]'
-  This event sends the signal to start the application.
+<!-- language: lang-html -->
+    <sc-event id="flickrStartEvent"
+        target='{"targetType": "application", "eventType": "applicationStart"}'
+        event-values='[{"name": "label", "value": "Enter City Name"},
+            {"name": "title", "value": "City Search"}]'></sc-event>
+This event sends the signal to start the application.
   
-  <sc-event id="flickrCitySelectedEvent"
-    target='{"targetType": "state", "id": "flickrInputState"}'></sc-event>
-  This event sends the city name entered as a tag in flickrInputState.
-  
-  <sc-event id="flickrItemSelectedEvent"
-    target='{"targetType": "state", "id": "flickrListState"}'></sc-event>
-  This event sends the list item selected by the user in flickrListState.
+<!-- language: lang-html -->
+    <sc-event id="flickrCitySelectedEvent"
+        target='{"targetType": "state", "id": "flickrInputState"}'></sc-event>
+This event sends the city name entered as a tag in flickrInputState.
+
+<!-- language: lang-html -->  
+    <sc-event id="flickrItemSelectedEvent"
+        target='{"targetType": "state", "id": "flickrListState"}'></sc-event>
+This event sends the list item selected by the user in flickrListState.
   
 There is also a special event when the term property of flickrInputState is an empty string.
 This event is used to reset the states.
-  <sc-event id="flickrResetEvent"
-    target='{"targetType": "state", "id": "flickrInputState", "eventType": "stateReset"}'
-    event-values='[{"name": "term", "value": ""}]'></sc-event> 
+<!-- language: lang-html -->
+    <sc-event id="flickrResetEvent"
+        target='{"targetType": "state", "id": "flickrInputState", "eventType": "stateReset"}'
+        event-values='[{"name": "term", "value": ""}]'></sc-event> 
     
 The Transitions: The following transitions are defined to respond to the above events:
-  <sc-transition id="flickrInputTransition" 
-    events='["flickrStartEvent"]' transition-to="flickrInputState" 
-    containers='[{"inputView": "inputContainer"}]'></sc-transition> 
-  It responds to flickrStartEvent, sets the event-values to the input params of flickrInputState,
-  and assigns inputView defined in flickrInputState to inputContainer.
-  
-  <sc-transition id="flickrListTransition"
-    events='["flickrCitySelectedEvent", "flickrResetEvent"]' transition-to="flickrListState" 
-    containers='[{"listView": "flickrListContainer"}]'></sc-transition>
-  It responds to flickrCitySelectedEvent, sets the event-values to the input params of flickrListState,
-  and assigns listView defined in flickrListState to flickrListContainer. Notice that this transition
-  also responds to flickrResetEvent by removing listView.
-  
-  <sc-transition id="flickrDetailTransition"
-    events='["flickrItemSelectedEvent", "flickrResetEvent"]' transition-to="flickrDetailState" 
-    containers='[{"detailView": "detailContainer"}]'></sc-transition>
-  It responds to flicktDetailTransition, sets the event-values to the input params of flickrDetailState,
-  and assign detailView defined in flickrDetailState to detailContainer. This transition also
-  responds to flickrResetEvent by removing detailView.
+<!-- language: lang-html -->
+    <sc-transition id="flickrInputTransition" 
+        events='["flickrStartEvent"]' transition-to="flickrInputState" 
+        containers='[{"inputView": "inputContainer"}]'></sc-transition> 
+It responds to flickrStartEvent, sets the event-values to the input params of flickrInputState,
+and assigns inputView defined in flickrInputState to inputContainer.
+
+<!-- language: lang-html -->
+    <sc-transition id="flickrListTransition"
+        events='["flickrCitySelectedEvent", "flickrResetEvent"]' transition-to="flickrListState" 
+        containers='[{"listView": "flickrListContainer"}]'></sc-transition>
+It responds to flickrCitySelectedEvent, sets the event-values to the input params of flickrListState,
+and assigns listView defined in flickrListState to flickrListContainer. Notice that this transition
+also responds to flickrResetEvent by removing listView.
+
+<!-- language: lang-html -->
+    <sc-transition id="flickrDetailTransition"
+        events='["flickrItemSelectedEvent", "flickrResetEvent"]' transition-to="flickrDetailState" 
+        containers='[{"detailView": "detailContainer"}]'></sc-transition>
+It responds to flicktDetailTransition, sets the event-values to the input params of flickrDetailState,
+and assign detailView defined in flickrDetailState to detailContainer. This transition also
+responds to flickrResetEvent by removing detailView.
 
 History Management: Navigation from state to state is captured in the url of the application by using
 pushState, or replaceState if the transition involves the same containers. The application also
