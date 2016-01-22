@@ -20,9 +20,9 @@ To run the demos, follow the steps below:
   2. down load and unzip the framework into a directory
   3. cd to the directory in #2, then run bower install
   4. add your API keys:
-    4.1. flickr: edit flickr-service.html in the folder elements to add 
+    - flickr: edit flickr-service.html in the folder elements to add 
     your flickr API key to the variable flickrKey
-    4.2. youtube: edit youtube-service.html in the folder elements to add
+    - youtube: edit youtube-service.html in the folder elements to add
     your youtube API key to the variable youtubeAPIKey
   5. next, run polyserve
   6. finally, open a browser and type in the following url:
