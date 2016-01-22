@@ -68,6 +68,7 @@ The API includes:
       },
       startApplication: function() {
         //this._setMainStateManager();
+        this._setUpStateManagers();
         this.mainSMObj = this.findMainStateManager();
         //this._addPatternSuffixes();
         this._wireEventRelays();
@@ -86,6 +87,22 @@ The API includes:
         var mainComposition = this._findMainComposition();
         console.log('Composition: mainComposition = ', mainComposition);
         this.mainSMObj = mainComposition.stateManagerObj();
+      },
+      _setUpStateManagers: function() {
+        var compositions = this._findCompositions();
+        if (compositions.length === 0) {
+          var stateManager = Polymer.dom(this).querySelector('sc-manager');
+          if (stateManager)
+            stateManager.setUp();
+        }
+        else {
+          for (var i = 0; i < compositions.length; i++) {
+            var compositionClass = compositions[i];
+            var composition = Polymer.dom(compositionClass.root).querySelector('sc-composition');
+            if (composition)
+              composition._setUpStateManagers();
+          }
+        }  
       },
       /*
        * find the state manager in this composition if there's one
