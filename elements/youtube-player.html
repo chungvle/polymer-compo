@@ -45,7 +45,7 @@
         _YTplayer: Object,
       },
       ready: function() {
-        console.log('Youtube-card: ready function called');
+        console.log('Youtube-player: ready function called');
         this._loadIframeAPI();
       },
       _setTitle: function() {
@@ -53,7 +53,7 @@
         console.log('this.item = ', this.item);
         this.paramTitle = this.item.snippet.title;
         this.$.player.src = 'http://www.youtube.com/embed/' + this.item.id.videoId + '?enablejsapi=1';
-        console.log('Youtube-card: player.src = ', this.$.player.src);
+        console.log('Youtube-player: player.src = ', this.$.player.src);
       },
       _createYTPlayer: function(event) {
         if (this._YPplayer)
@@ -63,7 +63,7 @@
               'onReady': this.onPlayerReady,
             }
         });
-        console.log('Youtube-card: new YouTube player created');
+        console.log('Youtube-player: new YouTube player created');
       },
       onPlayerReady: function(event) {
         event.target.playVideo();
@@ -74,7 +74,7 @@
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-        console.log('Youtube-card: YT Iframe API loaded');
+        console.log('Youtube-player: YT Iframe API loaded');
       }
     });
   </script>
