@@ -1,10 +1,8 @@
 <link rel="import" href="../bower_components/polymer/polymer.html">
 <link rel="import" href="../bower_components/iron-image/iron-image.html">
-<!--<link rel="import" href="../bower_components/paper-shadow/paper-shadow.html">-->
+
 <dom-module id="flickr-card">
-
   <template>
-
     <style>
       : host {
         display: block;
@@ -40,28 +38,17 @@
         <div class="title">{{item.title}}</div>
       </iron-image>
     </div>
-    <div class="item" id="view2">
-      <iron-image class="photo" sizing="cover" src="{{computeItemURL(item2)}}" preload relative>
-        <div class="title">{{item2.title}}</div>
-      </iron-image>
-    </div>
   </template>
 
   <script>
     Polymer({
-
       is: 'flickr-card',
 
       properties: {
-
         item: {
           type: Object,
           notify: true,
           observer: '_setTitle'
-        },
-        item2: {
-          type: Object,
-          notify: true
         },
         paramTitle: {
           type: String
@@ -73,10 +60,6 @@
       computeItemURL: function(item) {
         if (item != null)
           return 'https://farm' + item.farm + '.staticflickr.com/' + item.server + '/' + item.id + '_' + item.secret + '_m.jpg';
-      },
-      computeURL: function(farm, server, itemid, secret) {
-        if (item != null)
-          return 'https://farm' + farm + '.staticflickr.com/' + server + '/' + itemid + '_' + secret + '_m.jpg';
       },
       _setTitle: function() {
         this.paramTitle = this.item.title;
