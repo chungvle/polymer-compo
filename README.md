@@ -21,9 +21,11 @@ To run the demos, follow the steps below:
   3. cd to the directory in #2, then run bower install
   4. add your API keys:
     - flickr: edit flickr-service.html in the folder elements to add 
-    your flickr API key to the variable flickrKey
+    your flickr API key to the variable flickrKey. See [Flickr API] (https://www.flickr.com/services/api/misc.api_keys.html "Click for details on Flickr API") 
+    for more detail.
     - youtube: edit youtube-service.html in the folder elements to add
-    your youtube API key to the variable youtubeAPIKey
+    your youtube API key to the variable youtubeAPIKey. See [YouTube Data API] (https://developers.google.com/youtube/v3/getting-started "Click for details on YouTube Data API") 
+    for more detail.
   5. next, run polyserve
   6. finally, open a browser and type in the following url:
      - for the flickr demo: http://localhost:8080/components/PolymerCompo/demo/flickr.html
