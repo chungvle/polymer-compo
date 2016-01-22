@@ -98,9 +98,9 @@ The API includes:
       },
       attached: function() {
   	    console.log('sc-Manager: attached function called');
-  	    this._setUp();
       },
-      _setUp: function() {
+      //also called externally from sc-composition
+      setUp: function() {
         if (this.initialState)
           return;//only do this once.
         this._setInitialState(this);
@@ -113,7 +113,7 @@ The API includes:
       },
       startApplication: function(mainSM) {
         this.mainSM = mainSM;
-        this._setUp();
+        this.setUp();
         this._startApplication();
       },
       _startApplication: function() {
