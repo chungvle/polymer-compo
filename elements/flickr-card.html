@@ -13,6 +13,8 @@
         font-weight: 300;
       }
       .item {
+        float:left;  
+        position:relative;
         box-sizing: border-box;
         padding: 8px 16px;
       }
@@ -25,18 +27,19 @@
       }
       .title {
         position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        left: 16px;
+        right: 16px;
+        bottom: 12px;
         padding: 12px 8px 8px 8px;
         color: white;
         background: rgba(0, 0, 0, 0.3);
       }
     </style>
+    
     <div class="item" id="detailView">
-      <iron-image class="photo" sizing="cover" src="{{computeItemURL(item)}}" preload relative>
-        <div class="title">{{item.title}}</div>
+      <iron-image class="photo" sizing="cover" src="{{computeItemURL(item)}}" preload>
       </iron-image>
+      <div class="title">{{item.title}}</div>
     </div>
   </template>
 
