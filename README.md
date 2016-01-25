@@ -41,9 +41,9 @@ It consists of the following elements:
     with the changed values.
   - <b>Transition</b>: listens to changes from an event, and processes a transition to the specified state.
   - <b>State Manager</b>: manages a collections of states, events, and transitions.
-  - <b>Composition</b>: the simplest composition includes a state manager. In other cases, a composition might
-    contain other compositions. Composition also defines an interface to start the application, 
-    and to handle history management.
+  - <b>Composition</b>: defines an interface to start the application, and to handle history management.
+    The simplest composition includes a state manager. In other cases, a composition might
+    contain other compositions. 
   - <b>Relay</b>: a relay is used to connect an event to another. 
 
 To compose a new application using PolymerCompo:
