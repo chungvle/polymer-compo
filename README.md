@@ -1,6 +1,6 @@
 # PolymerCompo - A Polymer Composition Framework
 
-PolymerCompo is a framework to support declarative composition of applications from components. 
+PolymerCompo is a framework to support declarative composition of applications from web components. 
 In addition, it supports history management using pushState/popState.
 
 PolymerCompo is implemented using Polymer 1.0. See the section on 'What is PolymerCompo' for more details.
