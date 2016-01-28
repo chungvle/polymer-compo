@@ -15,7 +15,7 @@ There are three demos in the demo directory:
   
 To run the demos, follow the steps below:
   1. install polyserve
-     npm install -g polyserve
+    - npm install -g polyserve
   2. down load and unzip the framework into a directory
   3. cd to the directory in #2, then run bower install
   4. add your API keys:
