@@ -1,4 +1,4 @@
-# Polymer-compo - A Polymer Composition Framework
+# Polymer-compo - Custom Elements for Web Application Composition
 
 **Polymer-compo** is a set of custom elements designed to support declarative composition of applications from web components. In addition, **polymer-compo** supports history management using pushState/popState.
 
@@ -31,9 +31,9 @@ To run the demos, follow the steps below:
      - for the youtube demo: http://localhost:8080/components/PolymerCompo/demo/youtube.html
      - for the cityinfo demo: http://localhost:8080/components/PolymerCompo/demo/index.html
 
-## What is PolymerCompo?
+## What is Polymer-compo?
 
-PolymerCompo is a framework that supports composition of new applications from components. 
+Polymer-compo is a set of custom elements that support composition of web applications from components. 
 It consists of the following elements:
   - <b>State</b>: defines the interface to a component. 
   - <b>Event</b>: listens to changes of a target, e.g. outputs of a state, then broadcasts an event
@@ -45,7 +45,7 @@ It consists of the following elements:
     contain other compositions. 
   - <b>Relay</b>: a relay is used to connect an event to another. 
 
-To compose a new application using PolymerCompo:
+To compose a new application using Polymer-compo:
   1. define an <b>application shell</b>: this is the main body of the application; it defines the
      containers for the views which are provided by the components.
   2. define a <b>composition</b> which includes the states, events and transitions. These elements capture
@@ -151,6 +151,6 @@ responds to flickrResetEvent by removing detailView.
 <b>History Management:</b> Navigation from state to state is captured in the url of the 
 application by using pushState, or replaceState if the transition involves the same containers. 
 The application also listens to the popState event, e.g. when the user clicks on the back 
-or forward button. When that happens, PolymerCompo uses the history object stored with 
+or forward button. When that happens, Polymer-compo uses the history object stored with 
 pushState/replaceState to reload the current page. 
 History management is implemented by the element sc-history.
