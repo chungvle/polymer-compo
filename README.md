@@ -2,7 +2,7 @@
 
 **Polymer-compo** is a set of custom elements designed to support declarative composition of applications from web components. In addition, **polymer-compo** supports history management using pushState/popState.
 
-Polymer-compo is implemented using Polymer 1.0. See the section on 'What is PolymerCompo' for more details. The [wiki](https://github.com/chungvle/polymer-compo/wiki) provides an overview of polymer-compo's approach toward application composition.
+Polymer-compo is implemented using Polymer 1.0. See the section on 'What is PolymerCompo' for more details. The [**Wiki**](https://github.com/chungvle/polymer-compo/wiki) provides an overview of polymer-compo's approach toward application composition.
 
 
 ## Demos
